@@ -1,27 +1,41 @@
 {
-  "name": "exp",
+  "name": "tangerine",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:init": "ts-node -P tsconfig.scripts.json scripts/init-db.ts",
+    "db:seed": "ts-node -P tsconfig.scripts.json scripts/seed-db.ts",
+    "db:reset": "ts-node -P tsconfig.scripts.json scripts/reset-db.ts",
+    "db:monitor": "node scripts/monitor-db.js"
   },
   "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "next": "15.1.7"
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/node": "20.8.10",
+    "@types/react": "18.2.36",
+    "@types/react-dom": "18.2.14",
+    "autoprefixer": "10.4.16",
+    "better-sqlite3": "^9.1.1",
+    "chart.js": "^4.4.0",
+    "clsx": "^2.0.0",
+    "date-fns": "^2.30.0",
+    "eslint": "8.53.0",
+    "eslint-config-next": "14.0.1",
+    "next": "14.0.1",
+    "postcss": "8.4.31",
+    "react": "18.2.0",
+    "react-calendar": "^4.6.1",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "18.2.0",
+    "react-icons": "^4.11.0",
+    "tailwindcss": "3.3.5",
+    "typescript": "5.2.2",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "eslint": "^9",
-    "eslint-config-next": "15.1.7",
-    "@eslint/eslintrc": "^3"
+    "ts-node": "^10.9.1"
   }
 }
