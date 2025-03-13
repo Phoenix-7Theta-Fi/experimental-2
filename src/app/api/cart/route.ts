@@ -41,8 +41,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const cartItem = addToCart(userId, productId);
-    return NextResponse.json({ cartItem });
+    try {
+      const cartItem = addToCart(userId, productId);
+      return NextResponse.json({ cartItem });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === 'Product not found') {
+          return NextResponse.json(
+            { error: 'Product not found' },
+            { status: 404 }
+          );
+        }
+        if (error.message === 'Product out of stock') {
+          return NextResponse.json(
+            { error: 'Product is out of stock' },
+            { status: 400 }
+          );
+        }
+      }
+      throw error; // Re-throw unexpected errors
+    }
   } catch (error) {
     console.error('Error adding to cart:', error);
     return NextResponse.json(

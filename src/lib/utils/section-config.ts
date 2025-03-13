@@ -7,20 +7,25 @@ interface SectionConfig {
 }
 
 export const sectionConfig: Record<Section, SectionConfig> = {
+  schedule: {
+    name: 'Daily Schedule',
+    description: 'View and manage your daily activities and routines',
+    color: '#A855F7',
+  },
+  treatment: {
+    name: 'Treatment Plan',
+    description: 'View and manage your holistic treatment plan',
+    color: '#14B8A6',
+  },
   nutrition: {
     name: 'Diet and Medication',
     description: 'Track your nutrition and medication adherence',
     color: '#60A5FA',
   },
-  strength: {
-    name: 'Strength',
-    description: 'Monitor your strength progress and muscle balance',
+  workout: {
+    name: 'Workout',
+    description: 'Track your strength and cardio fitness metrics',
     color: '#F97316',
-  },
-  cardio: {
-    name: 'Cardio',
-    description: 'Track your cardiovascular fitness metrics',
-    color: '#EF4444',
   },
   yoga: {
     name: 'Yoga',

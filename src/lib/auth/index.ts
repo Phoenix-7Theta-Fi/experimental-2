@@ -17,12 +17,13 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return compare(password, hashedPassword);
 }
 
-export function createUser(email: string, password: string, role: 'patient' | 'practitioner'): User {
+export async function createUser(email: string, password: string, role: 'patient' | 'practitioner'): Promise<User> {
+  const hashedPassword = await hashPassword(password);
   return withDB(() => {
     const db = getDB();
-    const hashedPassword = db.prepare('INSERT INTO users (email, password, role) VALUES (?, ?, ?) RETURNING id, email, role')
-      .get(email, password, role) as User;
-    return hashedPassword;
+    const user = db.prepare('INSERT INTO users (email, password, role) VALUES (?, ?, ?) RETURNING id, email, role')
+      .get(email, hashedPassword, role) as User;
+    return user;
   });
 }
 

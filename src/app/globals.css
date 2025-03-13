@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom styles for messenger */
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: #1E293B;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background-color: #475569;
+  border-radius: 20px;
+}
+
+.messages-container {
+  scrollbar-width: thin;
+  scrollbar-color: #475569 #1E293B;
+}
+
 :root {
   --primary: #F97316;
   --secondary: #334155;
@@ -9,7 +28,42 @@
   --text: #F8FAFC;
 }
 
-body {
-  background-color: var(--background);
-  color: var(--text);
+@layer base {
+  body {
+    @apply bg-background text-text min-h-screen antialiased;
+  }
+
+  h1 {
+    @apply text-3xl font-bold mb-4;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold mb-3;
+  }
+
+  h3 {
+    @apply text-xl font-medium mb-2;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary/90;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary/90;
+  }
+
+  .card {
+    @apply bg-white/5 rounded-lg p-4 backdrop-blur-sm;
+  }
+
+  .input {
+    @apply bg-white/10 rounded-lg px-4 py-2 border border-white/20 focus:outline-none focus:ring-2 focus:ring-primary;
+  }
 }

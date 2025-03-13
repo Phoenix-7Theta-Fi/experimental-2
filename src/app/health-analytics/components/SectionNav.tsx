@@ -6,7 +6,10 @@ import {
   BoltIcon, 
   HeartIcon, 
   SparklesIcon,
-  BeakerIcon
+  BeakerIcon,
+  MoonIcon,
+  ClipboardDocumentCheckIcon,
+  CalendarDaysIcon
 } from '@heroicons/react/24/outline';
 import { ForwardRefExoticComponent, SVGProps, RefAttributes } from 'react';
 import { Section, VALID_SECTIONS } from '@/lib/utils/sections';
@@ -17,10 +20,12 @@ type IconType = ForwardRefExoticComponent<Omit<SVGProps<SVGSVGElement>, "ref"> &
 // Icons are client-only, so we keep them separate
 const sectionIcons: Record<Section, IconType> = {
   nutrition: ChartPieIcon,
-  strength: BoltIcon,
-  cardio: HeartIcon,
+  workout: BoltIcon,
   yoga: SparklesIcon,
-  mental: BeakerIcon,
+  mental: MoonIcon,  // Moon represents calm/peace/meditation
+  biomarkers: BeakerIcon,
+  treatment: ClipboardDocumentCheckIcon,
+  schedule: CalendarDaysIcon,
 };
 
 interface SectionNavProps {

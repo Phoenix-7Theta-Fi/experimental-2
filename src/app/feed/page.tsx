@@ -2,6 +2,7 @@ import db from '@/lib/db';
 import { getTweets } from '@/lib/db/tweets';
 import { cookies } from 'next/headers';
 import TweetList from './tweet-list';
+import { Navbar } from '@/components/navbar';
 
 export default async function FeedPage() {
   const cookieStore = await cookies();
@@ -18,9 +19,12 @@ export default async function FeedPage() {
     let tweets = getTweets(userId);
 
     return (
-      <div className="p-4">
+      <>
+        <Navbar userEmail={user.email} userRole={user.role} />
+        <div className="p-4 mt-16">
         <TweetList initialTweets={tweets} />
-      </div>
+        </div>
+      </>
     );
   } catch (error) {
     // If database is not initialized, display a friendly message

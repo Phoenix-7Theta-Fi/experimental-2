@@ -1,17 +1,17 @@
 'use client';
 
-import { MentalHealthMetrics } from "@/lib/types/health";
+import { MentalHealthData } from "@/lib/types/health";
 import ReactECharts from "echarts-for-react";
 
 interface SleepCyclesChartProps {
-  sleep: MentalHealthMetrics['sleep'];
+  sleep: MentalHealthData['sleep'];
 }
 
 export default function SleepCyclesChart({ sleep }: SleepCyclesChartProps) {
   const sleepCyclesOption = {
     tooltip: {
       trigger: 'item',
-      formatter: '{b}: {c} mins ({d}%)'
+      formatter: '{b}: {c}% ({d}%)'
     },
     series: [
       {
@@ -29,17 +29,17 @@ export default function SleepCyclesChart({ sleep }: SleepCyclesChartProps) {
         },
         data: [
           { 
-            value: sleep.cycles.deep, 
+            value: sleep.deep, 
             name: 'Deep',
             itemStyle: { color: '#3B82F6' }
           },
           { 
-            value: sleep.cycles.light, 
+            value: sleep.light, 
             name: 'Light',
             itemStyle: { color: '#60A5FA' }
           },
           { 
-            value: sleep.cycles.rem, 
+            value: sleep.rem, 
             name: 'REM',
             itemStyle: { color: '#93C5FD' }
           },
@@ -50,7 +50,7 @@ export default function SleepCyclesChart({ sleep }: SleepCyclesChartProps) {
 
   return (
     <div className="bg-[#1E293B] rounded-lg p-6">
-      <h3 className="text-[#F8FAFC] font-semibold mb-4">Sleep Cycles</h3>
+      <h3 className="text-[#F8FAFC] font-semibold mb-4">Sleep Quality</h3>
       <div className="h-[250px]">
         <ReactECharts 
           option={sleepCyclesOption}
@@ -60,10 +60,13 @@ export default function SleepCyclesChart({ sleep }: SleepCyclesChartProps) {
       </div>
       <div className="mt-4 flex justify-between text-sm">
         <div className="text-[#94A3B8]">
-          Quality: <span className="text-[#F8FAFC]">{sleep.quality}%</span>
+          Quality Score: <span className="text-[#F8FAFC]">{sleep.quality}%</span>
         </div>
         <div className="text-[#94A3B8]">
-          Hours: <span className="text-[#F8FAFC]">{sleep.averageHours.toFixed(1)}</span>
+          Hours: <span className="text-[#F8FAFC]">{sleep.hours.toFixed(1)}</span>
+        </div>
+        <div className="text-[#94A3B8]">
+          Consistency: <span className="text-[#F8FAFC]">{sleep.consistency}%</span>
         </div>
       </div>
     </div>

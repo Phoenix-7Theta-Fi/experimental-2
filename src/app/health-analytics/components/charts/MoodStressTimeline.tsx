@@ -1,27 +1,26 @@
 'use client';
 
-import { MentalHealthMetrics } from "@/lib/types/health";
+import { MentalHealthData } from "@/lib/types/health";
 import ReactECharts from "echarts-for-react";
 
 interface MoodStressTimelineProps {
-  mood: MentalHealthMetrics['mood'];
-  stress: MentalHealthMetrics['stress'];
+  mood: MentalHealthData['mood'];
+  wellbeing: MentalHealthData['wellbeing'];
 }
 
-export default function MoodStressTimeline({ mood, stress }: MoodStressTimelineProps) {
+export default function MoodStressTimeline({ mood, wellbeing }: MoodStressTimelineProps) {
   const moodHistoryOption = {
     tooltip: {
       trigger: 'axis',
       formatter: (params: any[]) => {
         if (!Array.isArray(params) || params.length === 0) return '';
         
-        const timestamp = params[0].axisValue;
         const moodValue = params[0]?.data ?? 'N/A';
         const stressValue = params[1]?.data ?? 'N/A';
         
-        return `${new Date(timestamp).toLocaleTimeString()}<br/>
-                Mood: ${moodValue}<br/>
-                Stress: ${stressValue}`;
+        return `Current Status<br/>
+                Mood (${mood.category}): ${moodValue}/10<br/>
+                Stress Level: ${stressValue}/10`;
       }
     },
     grid: {
@@ -33,9 +32,8 @@ export default function MoodStressTimeline({ mood, stress }: MoodStressTimelineP
     },
     xAxis: {
       type: 'category',
-      data: mood.history.map(h => h.timestamp),
+      data: ['Current'],
       axisLabel: {
-        formatter: (value: string) => new Date(value).toLocaleTimeString(),
         color: '#94A3B8'
       }
     },
@@ -49,7 +47,7 @@ export default function MoodStressTimeline({ mood, stress }: MoodStressTimelineP
         name: 'Mood',
         type: 'line',
         smooth: true,
-        data: mood.history.map(h => h.intensity),
+        data: [mood.intensity],
         itemStyle: { color: '#10B981' },
         areaStyle: {
           color: {
@@ -66,7 +64,7 @@ export default function MoodStressTimeline({ mood, stress }: MoodStressTimelineP
         name: 'Stress',
         type: 'line',
         smooth: true,
-        data: stress.triggers.map(t => t.intensity),
+        data: [wellbeing.stressLevel],
         itemStyle: { color: '#EF4444' },
         areaStyle: {
           color: {

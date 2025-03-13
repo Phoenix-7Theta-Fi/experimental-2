@@ -21,7 +21,7 @@ export default async function PatientDashboard() {
     <>
       <Navbar userEmail={user.email} userRole="patient" />
       <div className="min-h-screen bg-[#0F172A] pt-24 px-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-6">
           <div className="bg-[#1E293B] rounded-xl p-8">
             <h1 className="text-3xl font-bold text-[#F8FAFC] mb-4">
               Welcome to Tangerine Health
@@ -30,6 +30,7 @@ export default async function PatientDashboard() {
               Hello, {user.email}! You are logged in as a patient.
             </p>
           </div>
+          
         </div>
       </div>
     </>

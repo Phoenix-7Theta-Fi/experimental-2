@@ -29,6 +29,8 @@ export function CartItems() {
   }, [fetchCart]);
 
   const updateQuantity = async (itemId: number, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    
     try {
       const res = await fetch(`/api/cart/${itemId}`, {
         method: 'PUT',
@@ -72,10 +74,11 @@ export function CartItems() {
     }
   };
 
-  const totalAmount = cartItems.reduce(
-    (sum, item) => sum + item.product!.price * item.quantity,
-    0
-  );
+  // Calculate total only for items with valid products
+  const totalAmount = cartItems.reduce((sum, item) => {
+    if (!item.product) return sum;
+    return sum + item.product.price * item.quantity;
+  }, 0);
 
   if (isLoading) {
     return (
@@ -108,43 +111,49 @@ export function CartItems() {
       </div>
 
       <div className="space-y-4">
-        {cartItems.map((item) => (
-          <div
-            key={item.id}
-            className="bg-[#334155] p-4 rounded-lg shadow-lg shadow-black/20 border border-[#475569] flex items-center gap-4"
-          >
-            <div className="flex-1">
-              <h3 className="font-semibold text-[#F8FAFC]">{item.product!.name}</h3>
-              <p className="text-[#94A3B8] text-sm">{item.product!.category}</p>
-              <p className="text-[#F97316] font-semibold mt-1">
-                ₹{item.product!.price}
-              </p>
-            </div>
+        {cartItems.map((item) => {
+          // Skip rendering if product is missing
+          if (!item.product) return null;
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                className="w-8 h-8 flex items-center justify-center bg-[#1E293B] text-[#F8FAFC] rounded hover:bg-[#0F172A] transition-colors"
-              >
-                -
-              </button>
-              <span className="w-8 text-center text-[#F8FAFC]">{item.quantity}</span>
-              <button
-                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                className="w-8 h-8 flex items-center justify-center bg-[#1E293B] text-[#F8FAFC] rounded hover:bg-[#0F172A] transition-colors"
-              >
-                +
-              </button>
-            </div>
-
-            <button
-              onClick={() => removeItem(item.id)}
-              className="text-red-400 hover:text-red-500 transition-colors p-2"
+          return (
+            <div
+              key={item.id}
+              className="bg-[#334155] p-4 rounded-lg shadow-lg shadow-black/20 border border-[#475569] flex items-center gap-4"
             >
-              Remove
-            </button>
-          </div>
-        ))}
+              <div className="flex-1">
+                <h3 className="font-semibold text-[#F8FAFC]">{item.product.name}</h3>
+                <p className="text-[#94A3B8] text-sm">{item.product.category}</p>
+                <p className="text-[#F97316] font-semibold mt-1">
+                  ₹{item.product.price}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                  className="w-8 h-8 flex items-center justify-center bg-[#1E293B] text-[#F8FAFC] rounded hover:bg-[#0F172A] transition-colors disabled:opacity-50"
+                  disabled={item.quantity <= 1}
+                >
+                  -
+                </button>
+                <span className="w-8 text-center text-[#F8FAFC]">{item.quantity}</span>
+                <button
+                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  className="w-8 h-8 flex items-center justify-center bg-[#1E293B] text-[#F8FAFC] rounded hover:bg-[#0F172A] transition-colors"
+                >
+                  +
+                </button>
+              </div>
+
+              <button
+                onClick={() => removeItem(item.id)}
+                className="text-red-400 hover:text-red-500 transition-colors p-2"
+              >
+                Remove
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       <div className="mt-8 bg-[#1E293B] p-4 rounded-lg border border-[#475569]">

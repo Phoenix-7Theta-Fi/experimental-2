@@ -3,16 +3,16 @@
 import CircularGauge from "../CircularGauge";
 
 interface WellbeingMetricsProps {
-  wellbeingScore: number;
+  overallScore: number;
   recoveryScore: number;
-  resilienceScore: number;
+  stressLevel: number;
   meditationProgress: number;
 }
 
 export default function WellbeingMetrics({
-  wellbeingScore,
+  overallScore,
   recoveryScore,
-  resilienceScore,
+  stressLevel,
   meditationProgress
 }: WellbeingMetricsProps) {
   return (
@@ -20,7 +20,7 @@ export default function WellbeingMetrics({
       <h3 className="text-[#F8FAFC] font-semibold mb-4">Wellbeing Metrics</h3>
       <div className="grid grid-cols-2 gap-4">
         <CircularGauge
-          value={wellbeingScore}
+          value={overallScore}
           minValue={0}
           maxValue={100}
           color="#10B981"
@@ -38,11 +38,11 @@ export default function WellbeingMetrics({
           size={100}
         />
         <CircularGauge
-          value={resilienceScore}
+          value={100 - stressLevel}
           minValue={0}
           maxValue={100}
           color="#3B82F6"
-          label="Resilience"
+          label="Calmness"
           unit="%"
           size={100}
         />

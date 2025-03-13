@@ -1,7 +1,11 @@
 import { getDB } from './index';
-import { BiomarkerData } from '../types/health';
+import { 
+  BiomarkerData, 
+  BiomarkerCategory, 
+  BIOMARKER_RANGES 
+} from '../types/health';
 
-export const getUserBiomarkerData = (userId: number) => {
+export const getUserBiomarkerData = (userId: number): BiomarkerData[] | null => {
   const db = getDB();
   const data = db.prepare(`
     SELECT * FROM biomarkers 
@@ -53,17 +57,66 @@ export const getUserBiomarkerData = (userId: number) => {
   })) as BiomarkerData[];
 };
 
-export const seedBiomarkerData = () => {
+type BiomarkerMapping = {
+  [Category in BiomarkerCategory]: {
+    [Metric: string]: {
+      dbColumn: string;
+      range: { min: number; max: number };
+    };
+  };
+};
+
+// Define the mapping between biomarker categories, metrics, and database columns
+const BIOMARKER_MAPPING: BiomarkerMapping = {
+  glucose: {
+    fasting: { dbColumn: 'fasting_glucose', range: BIOMARKER_RANGES.glucose.fasting },
+    postPrandial: { dbColumn: 'post_prandial_glucose', range: BIOMARKER_RANGES.glucose.postPrandial },
+    hba1c: { dbColumn: 'hba1c', range: BIOMARKER_RANGES.glucose.hba1c }
+  },
+  lipids: {
+    totalCholesterol: { dbColumn: 'total_cholesterol', range: BIOMARKER_RANGES.lipids.totalCholesterol },
+    hdl: { dbColumn: 'hdl', range: BIOMARKER_RANGES.lipids.hdl },
+    ldl: { dbColumn: 'ldl', range: BIOMARKER_RANGES.lipids.ldl },
+    triglycerides: { dbColumn: 'triglycerides', range: BIOMARKER_RANGES.lipids.triglycerides }
+  },
+  thyroid: {
+    tsh: { dbColumn: 'tsh', range: BIOMARKER_RANGES.thyroid.tsh },
+    t3: { dbColumn: 't3', range: BIOMARKER_RANGES.thyroid.t3 },
+    t4: { dbColumn: 't4', range: BIOMARKER_RANGES.thyroid.t4 }
+  },
+  vitamins: {
+    d: { dbColumn: 'vitamin_d', range: BIOMARKER_RANGES.vitamins.d },
+    b12: { dbColumn: 'vitamin_b12', range: BIOMARKER_RANGES.vitamins.b12 }
+  },
+  inflammation: {
+    crp: { dbColumn: 'crp', range: BIOMARKER_RANGES.inflammation.crp },
+    esr: { dbColumn: 'esr', range: BIOMARKER_RANGES.inflammation.esr }
+  },
+  liver: {
+    alt: { dbColumn: 'alt', range: BIOMARKER_RANGES.liver.alt },
+    ast: { dbColumn: 'ast', range: BIOMARKER_RANGES.liver.ast },
+    albumin: { dbColumn: 'albumin', range: BIOMARKER_RANGES.liver.albumin }
+  },
+  kidney: {
+    creatinine: { dbColumn: 'creatinine', range: BIOMARKER_RANGES.kidney.creatinine },
+    urea: { dbColumn: 'urea', range: BIOMARKER_RANGES.kidney.urea },
+    uricAcid: { dbColumn: 'uric_acid', range: BIOMARKER_RANGES.kidney.uricAcid }
+  }
+};
+
+export const seedBiomarkerData = (specificUsers?: number[]) => {
   const db = getDB();
-  const users = db.prepare("SELECT id FROM users WHERE role = 'patient'").all() as { id: number }[];
+  const users = specificUsers 
+    ? specificUsers.map(id => ({ id }))
+    : (db.prepare("SELECT id FROM users WHERE role = 'patient'").all() as { id: number }[]);
   const today = new Date();
 
   users.forEach(user => {
     const existingData = getUserBiomarkerData(user.id);
     if (!existingData) {
-      // Helper function to generate random values within a range
-      const randomValue = (min: number, max: number) => 
-        Math.random() < 0.1 ? null : min + Math.random() * (max - min);
+      // Generate random value within range with possibility of null (10%)
+      const generateValue = (min: number, max: number): number => 
+        Number((min + Math.random() * (max - min)).toFixed(2));
 
       // Generate data for the last 5 dates
       for (let i = 0; i < 5; i++) {
@@ -71,40 +124,27 @@ export const seedBiomarkerData = () => {
         date.setDate(date.getDate() - i * 30); // Monthly readings
         const recordDate = date.toISOString().split('T')[0];
 
-        db.prepare(`
-          INSERT INTO biomarkers (
-            user_id, date,
-            fasting_glucose, post_prandial_glucose, hba1c,
-            total_cholesterol, hdl, ldl, triglycerides,
-            tsh, t3, t4,
-            vitamin_d, vitamin_b12,
-            crp, esr,
-            alt, ast, albumin,
-            creatinine, urea, uric_acid
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
-          user.id, recordDate,
-          randomValue(70, 110),     // fasting_glucose (mg/dL)
-          randomValue(100, 140),    // post_prandial_glucose (mg/dL)
-          randomValue(4.5, 6.5),    // hba1c (%)
-          randomValue(150, 200),    // total_cholesterol (mg/dL)
-          randomValue(40, 60),      // hdl (mg/dL)
-          randomValue(90, 130),     // ldl (mg/dL)
-          randomValue(50, 150),     // triglycerides (mg/dL)
-          randomValue(0.4, 4.0),    // tsh (mIU/L)
-          randomValue(80, 200),     // t3 (ng/dL)
-          randomValue(5.0, 12.0),   // t4 (µg/dL)
-          randomValue(20, 50),      // vitamin_d (ng/mL)
-          randomValue(200, 900),    // vitamin_b12 (pg/mL)
-          randomValue(0, 5),        // crp (mg/L)
-          randomValue(0, 20),       // esr (mm/hr)
-          randomValue(7, 56),       // alt (U/L)
-          randomValue(10, 40),      // ast (U/L)
-          randomValue(3.5, 5.0),    // albumin (g/dL)
-          randomValue(0.6, 1.2),    // creatinine (mg/dL)
-          randomValue(7, 20),       // urea (mg/dL)
-          randomValue(2.4, 6.0)     // uric_acid (mg/dL)
-        );
+        const columns = ['user_id', 'date'];
+        const values: (string | number)[] = [user.id, recordDate];
+        const placeholders = ['?', '?'];
+
+        // Add all biomarker columns and values
+        Object.values(BIOMARKER_MAPPING).forEach(categoryMetrics => {
+          Object.values(categoryMetrics).forEach(metric => {
+            columns.push(metric.dbColumn);
+            // 10% chance of null value
+            const value = Math.random() < 0.1 ? null : generateValue(metric.range.min, metric.range.max);
+            values.push(value as number);
+            placeholders.push('?');
+          });
+        });
+
+        const query = `
+          INSERT INTO biomarkers (${columns.join(', ')})
+          VALUES (${placeholders.join(', ')})
+        `;
+
+        db.prepare(query).run(...values);
       }
     }
   });

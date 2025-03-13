@@ -1,10 +1,11 @@
 export const VALID_SECTIONS = [
   'nutrition',
-  'strength',
-  'cardio',
+  'workout',
   'yoga',
   'mental',
   'biomarkers',
+  'treatment',
+  'schedule',
 ] as const;
 
 export type Section = typeof VALID_SECTIONS[number];

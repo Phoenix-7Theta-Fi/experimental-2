@@ -39,12 +39,25 @@ export function Navbar({ userEmail, userRole }: NavbarProps) {
             >
               Shop
             </Link>
-            {userRole === 'patient' && (
+            <Link
+              href="/chat"
+              className="text-[#94A3B8] hover:text-[#F97316] transition-colors"
+            >
+              Chat
+            </Link>
+            {userRole === 'patient' ? (
               <Link
                 href="/health-analytics"
                 className="text-[#94A3B8] hover:text-[#F97316] transition-colors"
               >
                 Health Analytics
+              </Link>
+            ) : (
+              <Link
+                href="/patients"
+                className="text-[#94A3B8] hover:text-[#F97316] transition-colors"
+              >
+                Patients
               </Link>
             )}
           </div>

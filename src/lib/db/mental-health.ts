@@ -42,9 +42,11 @@ export const getUserMentalHealthData = (userId: number) => {
   } as MentalHealthData;
 };
 
-export const seedMentalHealthData = () => {
+export const seedMentalHealthData = (specificUsers?: number[]) => {
   const db = getDB();
-  const users = db.prepare("SELECT id FROM users WHERE role = 'patient'").all() as { id: number }[];
+  const users = specificUsers 
+    ? specificUsers.map(id => ({ id }))
+    : (db.prepare("SELECT id FROM users WHERE role = 'patient'").all() as { id: number }[]);
   const today = new Date().toISOString().split('T')[0];
   const moodCategories = ['happy', 'calm', 'anxious', 'stressed', 'neutral'];
 

@@ -32,8 +32,11 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         <Image
           src={product.image_url}
           alt={product.name}
-          fill
-          className="object-cover"
+          width={400}
+          height={300}
+          className="object-cover w-full h-full"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+          priority
         />
       </div>
       <div className="p-4">

@@ -20,7 +20,7 @@ const BiomarkerTrendsChart: React.FC<BiomarkerTrendsChartProps> = ({ data }) => 
     ranges: { min: number; max: number }
   ) => {
     const values = sortedData.map(d => {
-      let value: any = d.biomarkers;
+      let value: any = d;
       for (const key of path) {
         value = value[key];
       }
@@ -70,12 +70,31 @@ const BiomarkerTrendsChart: React.FC<BiomarkerTrendsChartProps> = ({ data }) => 
       textStyle: {
         color: '#F8FAFC',
       },
+      formatter: (params: any[]) => {
+        const date = new Date(params[0].axisValue).toLocaleDateString();
+        const items = params
+          .filter(param => !param.seriesName.includes('Range'))
+          .map(param => {
+            let unit = '';
+            if (param.seriesName.includes('Glucose')) unit = 'mg/dL';
+            if (param.seriesName.includes('TSH')) unit = 'mU/L';
+            if (param.seriesName.includes('Vitamin D')) unit = 'ng/mL';
+            if (param.value === null) return `${param.seriesName}: N/A`;
+            return `${param.seriesName}: ${param.value}${unit}`;
+          });
+        return `${date}<br/>${items.join('<br/>')}`;
+      }
     },
     legend: {
       top: 30,
       textStyle: {
         color: '#F8FAFC',
       },
+      selected: {
+        'Fasting Glucose (Range)': false,
+        'TSH (Range)': false,
+        'Vitamin D (Range)': false,
+      }
     },
     grid: {
       left: '3%',
@@ -98,26 +117,26 @@ const BiomarkerTrendsChart: React.FC<BiomarkerTrendsChartProps> = ({ data }) => 
     yAxis: [
       {
         type: 'value',
-        name: 'Blood Sugar',
+        name: 'Values',
         axisLabel: { color: '#F8FAFC' },
         nameTextStyle: { color: '#F8FAFC' },
       },
     ],
     series: [
       ...getBiomarkerSeries(
-        ['bloodSugar', 'fasting'],
+        ['glucose', 'fasting'],
         'Fasting Glucose',
-        BIOMARKER_RANGES.bloodSugar.fasting
+        BIOMARKER_RANGES.glucose.fasting
       ),
       ...getBiomarkerSeries(
-        ['thyroidFunction', 'tsh'],
+        ['thyroid', 'tsh'],
         'TSH',
-        BIOMARKER_RANGES.thyroidFunction.tsh
+        BIOMARKER_RANGES.thyroid.tsh
       ),
       ...getBiomarkerSeries(
-        ['vitaminLevels', 'vitaminD'],
+        ['vitamins', 'd'],
         'Vitamin D',
-        BIOMARKER_RANGES.vitaminLevels.vitaminD
+        BIOMARKER_RANGES.vitamins.d
       ),
     ],
     dataZoom: [

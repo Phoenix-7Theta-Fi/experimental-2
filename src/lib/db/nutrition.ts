@@ -30,9 +30,11 @@ export const getUserNutritionData = (userId: number) => {
   } as NutritionData;
 };
 
-export const seedNutrition = () => {
+export const seedNutrition = (specificUsers?: number[]) => {
   const db = getDB();
-  const users = db.prepare("SELECT id FROM users WHERE role = 'patient'").all() as { id: number }[];
+  const users = specificUsers 
+    ? specificUsers.map(id => ({ id }))
+    : (db.prepare("SELECT id FROM users WHERE role = 'patient'").all() as { id: number }[]);
   const today = new Date().toISOString().split('T')[0];
 
   users.forEach(user => {

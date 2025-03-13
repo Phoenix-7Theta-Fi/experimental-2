@@ -2,15 +2,17 @@
 
 import { YogaData } from "@/lib/types/health";
 import CircularGauge from "./CircularGauge";
+import { YogaInsights } from './yoga/YogaInsights';
 import ReactECharts from "echarts-for-react";
 
 interface YogaMetricsChartProps {
   data: YogaData;
+  patientId: number;
 }
 
-export default function YogaMetricsChart({ data }: YogaMetricsChartProps) {
+export default function YogaMetricsChart({ data, patientId }: YogaMetricsChartProps) {
   // Flexibility Radar Chart Options
-  const flexibilityOption = {
+  const flexibilityOption: echarts.EChartsOption = {
     title: {
       text: "Flexibility Metrics",
       left: "center",
@@ -29,7 +31,7 @@ export default function YogaMetricsChart({ data }: YogaMetricsChartProps) {
       },
     },
     radar: {
-      shape: 'circle',
+      shape: 'circle' as const,
       indicator: [
         { name: 'Spine', max: 100 },
         { name: 'Hips', max: 100 },
@@ -53,11 +55,9 @@ export default function YogaMetricsChart({ data }: YogaMetricsChartProps) {
           color: '#475569',
         },
       },
-      name: {
-        textStyle: {
-          color: '#94A3B8',
-          fontSize: 12,
-        },
+      axisName: {
+        color: '#94A3B8',
+        fontSize: 12,
       },
     },
     series: [{
@@ -93,31 +93,30 @@ export default function YogaMetricsChart({ data }: YogaMetricsChartProps) {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto bg-[#334155] rounded-lg shadow-lg shadow-black/20 border border-[#475569] overflow-hidden">
-      <div className="p-6">
-        {/* Title */}
-        <div className="text-center mb-6">
-          <h2 className="text-xl font-semibold text-[#F8FAFC]">Yoga Progress</h2>
-          <p className="text-sm text-[#94A3B8] mt-1">Track your flexibility, practice, and pose mastery</p>
-        </div>
+    <div className="grid grid-cols-5 gap-8">
+      <div className="col-span-3 space-y-4">
+        <div className="w-full bg-[#334155] rounded-lg border-[#475569] p-4">
+          {/* Title */}
+          <div className="text-center mb-4">
+            <h2 className="text-2xl font-semibold text-[#F8FAFC]">Yoga Progress</h2>
+            <p className="text-sm text-[#94A3B8] mt-1">Track your flexibility, practice, and pose mastery</p>
+          </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Flexibility Radar */}
-          <div className="bg-[#1E293B] rounded-lg p-6">
+          {/* Main Content Stack */}
+          <div className="space-y-4">
+            {/* Flexibility Radar */}
+            <div className="bg-[#1E293B] rounded-lg p-4">
             <ReactECharts 
               option={flexibilityOption}
-              style={{ height: "300px" }}
+              style={{ height: "280px" }}
               theme="dark"
             />
           </div>
 
-          {/* Right Column - Practice & Poses */}
-          <div className="space-y-6">
-            {/* Practice Progress */}
-            <div className="bg-[#1E293B] rounded-lg p-6">
-              <h3 className="text-[#F8FAFC] font-semibold mb-4">Practice Stats</h3>
-              <div className="flex items-center justify-between space-x-4">
+            {/* Practice Stats */}
+            <div className="bg-[#1E293B] rounded-lg p-4">
+              <h3 className="text-[#F8FAFC] font-semibold mb-3">Practice Stats</h3>
+              <div className="flex items-center justify-between space-x-3">
                 <CircularGauge
                   value={data.practice.weeklyCompletion}
                   minValue={0}
@@ -140,9 +139,9 @@ export default function YogaMetricsChart({ data }: YogaMetricsChartProps) {
               </div>
             </div>
 
-            {/* Pose Progress */}
-            <div className="bg-[#1E293B] rounded-lg p-6">
-              <h3 className="text-[#F8FAFC] font-semibold mb-4">Pose Mastery</h3>
+            {/* Pose Mastery */}
+            <div className="bg-[#1E293B] rounded-lg p-4">
+              <h3 className="text-[#F8FAFC] font-semibold mb-3">Pose Mastery</h3>
               <div className="space-y-4">
                 {[
                   { 
@@ -185,6 +184,13 @@ export default function YogaMetricsChart({ data }: YogaMetricsChartProps) {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Insights Section */}
+      <div className="col-span-2">
+        <div className="sticky top-4 bg-[#334155] rounded-lg border-[#475569] overflow-auto max-h-[calc(100vh-2rem)] p-2">
+          <YogaInsights patientId={patientId} className="h-full" />
         </div>
       </div>
     </div>

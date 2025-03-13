@@ -1,4 +1,5 @@
 import { getDB } from './index';
+import { hashPassword } from '../auth';
 
 export interface User {
   id: number;
@@ -8,6 +9,7 @@ export interface User {
   username?: string;
   name?: string;
   avatar_url?: string;
+  practitioner_id?: number;
 }
 
 export interface Tweet {
@@ -46,7 +48,26 @@ export const getUserTweets = (userId: number, currentUserId: number) => {
   `).all(currentUserId, userId) as (Tweet & { username: string; name: string; role: string; avatar_url: string })[];
 };
 
-export const seedUsers = () => {
+export const getPatientsByPractitioner = (practitionerId: number) => {
+  const db = getDB();
+  return db.prepare(`
+    SELECT id, email, username, name, avatar_url, practitioner_id 
+    FROM users 
+    WHERE role = 'patient' AND practitioner_id = ?
+  `).all(practitionerId) as (Omit<User, 'password' | 'role'>)[];
+};
+
+export const assignPatientToPractitioner = (patientId: number, practitionerId: number) => {
+  const db = getDB();
+  return db.prepare(`
+    UPDATE users 
+    SET practitioner_id = ? 
+    WHERE id = ? AND role = 'patient'
+    RETURNING id
+  `).get(practitionerId, patientId);
+};
+
+export const seedUsers = async () => {
   const db = getDB();
   const users = [
     { email: 'dr.smith@example.com', password: 'password123', role: 'practitioner', username: 'drsmith', name: 'Dr. John Smith', avatar_url: 'https://randomuser.me/api/portraits/men/1.jpg' },
@@ -64,21 +85,46 @@ export const seedUsers = () => {
   const existingUsers = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
   
   if (existingUsers.count === 0) {
-    const stmt = db.prepare(`
+    // First insert practitioners
+    const practitionerStmt = db.prepare(`
       INSERT INTO users (email, password, role, username, name, avatar_url)
       VALUES (?, ?, ?, ?, ?, ?)
     `);
 
-    users.forEach(user => {
-      stmt.run(
+    for (const user of users.filter(u => u.role === 'practitioner')) {
+      const hashedPassword = await hashPassword(user.password);
+      practitionerStmt.run(
         user.email,
-        user.password,
+        hashedPassword,
         user.role,
         user.username,
         user.name,
         user.avatar_url
       );
-    });
+    }
+
+    // Get Dr. Sarah Jones's ID
+    const drJones = db.prepare("SELECT id FROM users WHERE email = ?")
+      .get('dr.jones@example.com') as { id: number };
+
+    // Then insert patients with Dr. Jones as their practitioner
+    const patientStmt = db.prepare(`
+      INSERT INTO users (email, password, role, username, name, avatar_url, practitioner_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    for (const user of users.filter(u => u.role === 'patient')) {
+      const hashedPassword = await hashPassword(user.password);
+      patientStmt.run(
+        user.email,
+        hashedPassword,
+        user.role,
+        user.username,
+        user.name,
+        user.avatar_url,
+        drJones.id
+      );
+    }
   }
 
   console.log('Users seeded successfully');

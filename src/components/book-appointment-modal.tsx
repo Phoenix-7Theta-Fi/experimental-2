@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { TimeSlot } from '@/lib/types';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import { format } from 'date-fns';
+import clsx from 'clsx';
 
 interface BookAppointmentModalProps {
   practitionerId: number;
@@ -21,15 +21,15 @@ export default function BookAppointmentModal({
   const [error, setError] = useState('');
 
   // Fetch available time slots when date changes
-  const handleDateChange = async (date: Date | null) => {
-    if (!date) {
+  const handleDateChange = async (selectedDate: Date) => {
+    if (!selectedDate) {
       setTimeSlots([]);
       return;
     }
 
-    setDate(date);
+    setDate(selectedDate);
     try {
-      const formattedDate = date.toISOString().split('T')[0];
+      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
       const response = await fetch(
         `/api/appointments?practitionerId=${practitionerId}&date=${formattedDate}`
       );
@@ -55,7 +55,7 @@ export default function BookAppointmentModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           practitionerId,
-          date: date.toISOString().split('T')[0],
+          date: format(date, 'yyyy-MM-dd'),
           timeSlot: selectedSlot
         })
       });
@@ -87,15 +87,11 @@ export default function BookAppointmentModal({
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-[#94A3B8] mb-2">Select Date</label>
-            <DatePicker
-              selected={date}
-              onChange={handleDateChange}
-              minDate={minDate}
-              dateFormat="MMMM d, yyyy"
+            <input
+              type="date"
+              min={format(minDate, 'yyyy-MM-dd')}
+              onChange={(e) => handleDateChange(new Date(e.target.value))}
               className="w-full p-2 rounded bg-[#334155] text-[#F8FAFC] border border-[#475569]"
-              wrapperClassName="w-full"
-              placeholderText="Select a date"
-              filterDate={(date: Date) => date.getDay() !== 0 && date.getDay() !== 6} // Exclude weekends
             />
           </div>
 
@@ -109,13 +105,14 @@ export default function BookAppointmentModal({
                     type="button"
                     disabled={!slot.available}
                     onClick={() => setSelectedSlot(slot.time)}
-                    className={`p-2 rounded text-center transition-colors ${
-                      selectedSlot === slot.time
-                        ? 'bg-[#3B82F6] text-white'
-                        : slot.available
-                        ? 'bg-[#334155] text-[#F8FAFC] hover:bg-[#475569]'
-                        : 'bg-[#1E293B] text-[#64748B] cursor-not-allowed'
-                    }`}
+                    className={clsx(
+                      'p-2 rounded text-center transition-colors',
+                      {
+                        'bg-[#3B82F6] text-white': selectedSlot === slot.time,
+                        'bg-[#334155] text-[#F8FAFC] hover:bg-[#475569]': selectedSlot !== slot.time && slot.available,
+                        'bg-[#1E293B] text-[#64748B] cursor-not-allowed': !slot.available
+                      }
+                    )}
                   >
                     {slot.time}
                   </button>
@@ -139,11 +136,13 @@ export default function BookAppointmentModal({
             <button
               type="submit"
               disabled={!date || !selectedSlot || loading}
-              className={`px-4 py-2 rounded ${
-                !date || !selectedSlot || loading
-                  ? 'bg-[#3B82F6]/50 cursor-not-allowed'
-                  : 'bg-[#3B82F6] hover:bg-[#2563EB]'
-              } text-white transition-colors`}
+              className={clsx(
+                'px-4 py-2 rounded text-white transition-colors',
+                {
+                  'bg-[#3B82F6]/50 cursor-not-allowed': !date || !selectedSlot || loading,
+                  'bg-[#3B82F6] hover:bg-[#2563EB]': date && selectedSlot && !loading
+                }
+              )}
             >
               {loading ? 'Booking...' : 'Book Appointment'}
             </button>
