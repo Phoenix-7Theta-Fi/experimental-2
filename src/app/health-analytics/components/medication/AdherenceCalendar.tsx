@@ -1,140 +1,104 @@
 'use client';
 
-import ReactECharts from 'echarts-for-react';
-import type { EChartsOption } from 'echarts';
+import React, { useState } from 'react';
 import { MedicationTracking } from '@/lib/types/health';
+import { format, eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns';
 
 interface AdherenceCalendarProps {
   adherenceData: MedicationTracking['adherence'];
 }
 
-export default function AdherenceCalendar({ adherenceData }: AdherenceCalendarProps) {
-  // Combine adherence data from all medications into a single percentage per day
-  // Generate dates for the current month
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+const AdherenceCalendar: React.FC<AdherenceCalendarProps> = ({ adherenceData }) => {
+  const [currentDate] = useState(new Date());
+  
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  // Create data array for the calendar
-  const data = Array.from({ length: daysInMonth }, (_, index) => {
-    const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(index + 1).padStart(2, '0')}`;
-    
-    // Calculate adherence percentage for this date across all medications
+  const getDayAdherence = (date: Date): number => {
+    const dateStr = format(date, 'yyyy-MM-dd');
     let totalTaken = 0;
     let totalMedications = 0;
-    
+
     Object.values(adherenceData).forEach(medicationAdherence => {
-      const dayAdherence = medicationAdherence.find(a => a.date === date);
+      const dayAdherence = medicationAdherence.find(a => a.date === dateStr);
       if (dayAdherence) {
         totalMedications++;
         if (dayAdherence.taken) totalTaken++;
       }
     });
 
-    const percentage = totalMedications > 0 ? Math.round((totalTaken / totalMedications) * 100) : 0;
-    return [date, percentage];
-  });
-
-  const option: EChartsOption = {
-    title: {
-      text: 'Medication Adherence Calendar',
-      left: 'center',
-      top: 20,
-      textStyle: {
-        color: '#F8FAFC',
-        fontSize: 16,
-        fontWeight: 'bold',
-      },
-    },
-    tooltip: {
-      position: 'top' as const,
-      formatter: (params: any) => {
-        const value = params.value[1];
-        return `<div style="font-weight: bold; margin-bottom: 4px;">${params.value[0]}</div>
-                <div>Adherence Rate: <span style="color: ${value > 75 ? '#22C55E' : value > 50 ? '#F59E0B' : '#EF4444'}; font-weight: bold;">${value}%</span></div>`;
-      },
-      backgroundColor: '#1E293B',
-      borderColor: '#475569',
-      textStyle: {
-        color: '#F8FAFC',
-      },
-      padding: [8, 12],
-      extraCssText: 'box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 4px;',
-    },
-    visualMap: {
-      min: 0,
-      max: 100,
-      calculable: true,
-      orient: 'horizontal',
-      left: 'center',
-      bottom: '5%',
-      text: ['Low Adherence', 'High Adherence'],
-      textStyle: {
-        color: '#F8FAFC',
-        fontSize: 12,
-        fontWeight: 'bold',
-      },
-      itemWidth: 15,
-      itemHeight: 120,
-      inRange: {
-        color: ['#EF4444', '#FB923C', '#F59E0B', '#84CC16', '#22C55E'],
-      },
-      backgroundColor: '#1E293B',
-      borderColor: '#475569',
-      borderWidth: 1,
-      padding: [10, 15],
-    },
-    calendar: {
-      top: 70,
-      left: 30,
-      right: 30,
-      bottom: 80,
-      cellSize: ['auto' as const, 30],
-      range: `${year}-${String(month + 1).padStart(2, '0')}`,
-      itemStyle: {
-        borderWidth: 1,
-        borderColor: '#475569',
-        borderRadius: 2,
-      },
-      yearLabel: { show: false },
-      dayLabel: {
-        firstDay: 1,
-        nameMap: 'en',
-        color: '#F8FAFC',
-        fontSize: 12,
-        fontWeight: 'bold',
-      },
-      monthLabel: {
-        show: true,
-        color: '#F8FAFC',
-        fontSize: 14,
-        fontWeight: 'bold',
-      },
-      splitLine: {
-        show: true,
-        lineStyle: {
-          color: '#475569',
-          width: 1.5,
-          type: 'solid' as const,
-        },
-      },
-    },
-    series: {
-      type: 'heatmap',
-      coordinateSystem: 'calendar',
-      data: data,
-    },
+    return totalMedications > 0 ? Math.round((totalTaken / totalMedications) * 100) : 0;
   };
 
-  return (
-    <div className="w-full">
-      <ReactECharts
-        option={option}
-        style={{ height: '360px' }}
-        className="w-full"
-        theme="dark"
-      />
+  const getAdherenceColor = (percentage: number): string => {
+    if (percentage >= 80) return 'bg-emerald-500/20 text-emerald-500';
+    if (percentage >= 50) return 'bg-amber-500/20 text-amber-500';
+    return 'bg-red-500/20 text-red-500';
+  };
+
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const renderCalendarDay = (day: Date) => {
+    const adherenceRate = getDayAdherence(day);
+    const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+
+    return (
+      <div
+        key={day.toString()}
+        className={`
+          h-16 p-2 rounded-lg
+          ${getAdherenceColor(adherenceRate)}
+          ${isToday ? 'ring-2 ring-blue-500' : ''}
+          transition-all duration-200 hover:scale-105
+          flex flex-col items-center justify-between
+          cursor-pointer
+        `}
+      >
+        <span className="text-sm font-medium">
+          {format(day, 'd')}
+        </span>
+        <span className="text-xs font-bold">
+          {adherenceRate}%
+        </span>
+      </div>
+    );
+  };
+
+  const renderLegendItem = (color: string, textColor: string, label: string) => (
+    <div className="flex items-center">
+      <div className={`w-4 h-4 rounded-lg ${color} ${textColor}`} />
+      <span className="text-sm text-slate-300 ml-2">{label}</span>
     </div>
   );
-}
+
+  return (
+    <div className="bg-slate-800 rounded-lg p-6 shadow-lg">
+      <h3 className="text-xl font-bold text-slate-100 mb-6 text-center">
+        Medication Adherence - {format(currentDate, 'MMMM yyyy')}
+      </h3>
+
+      <div className="grid grid-cols-7 gap-2">
+        {weekDays.map((day) => (
+          <div key={day} className="text-center text-sm font-medium text-slate-400 mb-2">
+            {day}
+          </div>
+        ))}
+
+        {Array.from({ length: monthStart.getDay() }).map((_, index) => (
+          <div key={`empty-${index}`} className="h-16" />
+        ))}
+
+        {days.map((day) => renderCalendarDay(day))}
+      </div>
+
+      <div className="mt-6 flex items-center justify-center space-x-6">
+        {renderLegendItem('bg-emerald-500/20', 'text-emerald-500', 'High (≥80%)')}
+        {renderLegendItem('bg-amber-500/20', 'text-amber-500', 'Medium (≥50%)')}
+        {renderLegendItem('bg-red-500/20', 'text-red-500', 'Low (<50%)')}
+      </div>
+    </div>
+  );
+};
+
+export default AdherenceCalendar;
