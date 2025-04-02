@@ -302,6 +302,20 @@ export function setupTables(db: ReturnType<typeof sqlite>) {
     )
   `);
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS mood_entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      mood TEXT CHECK(mood IN ('happy', 'excited', 'calm', 'neutral', 'sad', 'anxious', 'stressed')) NOT NULL,
+      intensity INTEGER CHECK(intensity BETWEEN 1 AND 10) NOT NULL,
+      trigger TEXT,
+      note TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+
   // Indices for performance
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_nutrition_user_date ON nutrition(user_id, date);
@@ -315,6 +329,7 @@ export function setupTables(db: ReturnType<typeof sqlite>) {
     CREATE INDEX IF NOT EXISTS idx_treatment_plans_user ON treatment_plans(user_id);
     CREATE INDEX IF NOT EXISTS idx_session_store_key ON session_store(key);
     CREATE INDEX IF NOT EXISTS idx_session_store_created_at ON session_store(created_at);
+    CREATE INDEX IF NOT EXISTS idx_mood_entries_user_date ON mood_entries(user_id, date);
   `);
 
   // Health Insights table

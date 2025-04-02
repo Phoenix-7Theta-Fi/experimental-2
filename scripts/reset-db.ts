@@ -14,6 +14,7 @@ function main() {
     // First layer - tables that depend on other tables
     'meditation_sessions',
     'mood_history',
+    'mood_entries',
     'stress_triggers',
     'medication_adherence',
     'cart_items',

@@ -91,6 +91,7 @@ export interface MentalHealthData {
   mood: {
     category: string;
     intensity: number;
+    journey: MoodEntry[];
   };
   wellbeing: {
     stressLevel: number;
@@ -391,3 +392,12 @@ export const BIOMARKER_RANGES = {
     uricAcid: { min: 2.4, max: 6.0 }
   }
 };
+
+// Add this new interface for mood entries
+export interface MoodEntry {
+  date: string;
+  mood: string;
+  intensity: number;
+  trigger?: string;
+  note?: string;
+}
