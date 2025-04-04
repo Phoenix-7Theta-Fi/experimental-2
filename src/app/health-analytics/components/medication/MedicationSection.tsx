@@ -1,7 +1,7 @@
 'use client';
 
 import { MedicationTracking } from '@/lib/types/health';
-import MedicationTypeChart from './MedicationTypeChart';
+import MedicationCorrelationChart from './MedicationCorrelationChart';
 import AdherenceCalendar from './AdherenceCalendar';
 
 interface MedicationSectionProps {
@@ -15,7 +15,7 @@ export default function MedicationSection({ data }: MedicationSectionProps) {
 
       <div className="space-y-6">
         <div className="w-full bg-[#334155] rounded-lg border border-[#475569] p-4 shadow-md">
-          <MedicationTypeChart medications={data.medications} />
+          <MedicationCorrelationChart />
         </div>
         <div className="w-full bg-[#334155] rounded-lg border border-[#475569] p-4 shadow-md">
           <AdherenceCalendar adherenceData={data.adherence} />
