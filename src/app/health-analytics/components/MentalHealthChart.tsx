@@ -7,6 +7,7 @@ import MoodStressTimeline from "./charts/MoodStressTimeline";
 import WellbeingMetrics from "./charts/WellbeingMetrics";
 import { MentalHealthInsights } from './mental/MentalHealthInsights';
 import MoodJourneyMap from './charts/MoodJourneyMap';
+import MeditationTimeline from "./charts/MeditationTimeline";
 
 interface MentalHealthChartProps {
   data: MentalHealthData;
@@ -38,6 +39,10 @@ export default function MentalHealthChart({ data, patientId }: MentalHealthChart
               {/* Render SleepQualitySunburst without passing incompatible sleep prop */}
               {/* It will use its internal mock data */}
               <SleepQualitySunburst />
+            </div>
+
+            <div className="bg-[#1E293B] rounded-lg p-4">
+              <MeditationTimeline />
             </div>
 
             <div className="bg-[#1E293B] rounded-lg p-4">
