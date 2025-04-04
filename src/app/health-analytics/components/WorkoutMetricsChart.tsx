@@ -6,6 +6,7 @@ import { WorkoutData } from "@/lib/types/health";
 import HeartRateAnimation from "./HeartRateAnimation";
 import CircularGauge from "./CircularGauge";
 import { WorkoutInsights } from './workout/WorkoutInsights';
+import CardioPerformanceTimeline from './workout/CardioPerformanceTimeline';
 
 interface WorkoutMetricsChartProps {
   data: WorkoutData;
@@ -33,7 +34,7 @@ export default function WorkoutMetricsChart({ data, patientId }: WorkoutMetricsC
   // For pace, we invert the value for the gauge since lower is better
   const paceGaugeValue = 12 - data.pace;
 
-  const strengthChartOption: echarts.EChartsOption = {
+  const radarOption: echarts.EChartsOption = {
     title: {
       text: "Strength Metrics",
       left: "center",
@@ -126,130 +127,71 @@ export default function WorkoutMetricsChart({ data, patientId }: WorkoutMetricsC
     <div className="grid grid-cols-5 gap-8">
       <div className="col-span-3 space-y-4">
         <div className="w-full bg-[#334155] rounded-lg border-[#475569] p-4">
+          {/* Title */}
           <div className="text-center mb-4">
             <h2 className="text-2xl font-semibold text-[#F8FAFC]">Workout Performance</h2>
             <p className="mt-2 text-[#94A3B8] text-sm">Track your strength, cardio, and overall fitness progress</p>
           </div>
-          
-          <div className="space-y-4">
-            {/* Left Column - Strength Metrics */}
-            <div className="flex flex-col gap-4">
-              <div className="bg-[#1E293B] rounded-xl p-4 flex-1">
-                <ReactECharts 
-                  option={strengthChartOption} 
-                  style={{ height: "280px" }}
-                  className="w-full"
-                  theme="dark"
-                />
-              </div>
-              
-              <div className="bg-[#1E293B] rounded-xl p-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-[#94A3B8] text-sm font-medium mb-4">Power Metrics</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#F8FAFC] text-sm">Power Index</span>
-                        <span className="text-[#F97316] font-medium">{data.power_index}%</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#F8FAFC] text-sm">Muscle Balance</span>
-                        <span className="text-[#F97316] font-medium">{data.muscle_balance}%</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-[#94A3B8] text-sm font-medium mb-4">Max Lifts</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#F8FAFC] text-sm">Bench Press</span>
-                        <span className="text-[#F97316] font-medium">{data.bench_press}kg</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#F8FAFC] text-sm">Squat</span>
-                        <span className="text-[#F97316] font-medium">{data.squat}kg</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#F8FAFC] text-sm">Deadlift</span>
-                        <span className="text-[#F97316] font-medium">{data.deadlift}kg</span>
-                      </div>
-                    </div>
-                  </div>
+
+          {/* Strength Metrics Radar Chart */}
+          <div className="bg-[#1E293B] rounded-xl p-4 mb-4">
+            <h3 className="text-[#F8FAFC] font-semibold mb-2">Strength Metrics</h3>
+            <ReactECharts option={radarOption} style={{ height: '300px' }} />
+          </div>
+
+          {/* Power Metrics Grid */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="bg-[#1E293B] rounded-xl p-4">
+              <h3 className="text-[#F8FAFC] font-semibold mb-2">Power Metrics</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-[#94A3B8]">Power Index</span>
+                  <span className="text-[#F8FAFC]">{data.power_index}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#94A3B8]">Muscle Balance</span>
+                  <span className="text-[#F8FAFC]">{data.muscle_balance}%</span>
                 </div>
               </div>
             </div>
-
-            {/* Right Column - Cardio Metrics */}
-            <div className="flex flex-col gap-4">
-              {/* Heart Rate Monitor */}
-              <div className="bg-[#1E293B] rounded-xl p-4 flex-1">
-                <HeartRateAnimation 
-                  currentRate={currentHeartRate}
-                  maxRate={data.max_heart_rate}
-                  restingRate={data.resting_heart_rate}
-                />
-              </div>
-
-              {/* Performance Metrics */}
-              <div className="bg-[#1E293B] rounded-xl p-4">
-                <h3 className="text-[#F8FAFC] font-semibold mb-3">Cardio Metrics</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <CircularGauge
-                    value={data.vo2_max}
-                    minValue={30}
-                    maxValue={60}
-                    color="#10B981"
-                    label="VO2 Max"
-                    unit="mL/kg/min"
-                    size={100}
-                  />
-                  <CircularGauge
-                    value={data.endurance}
-                    minValue={0}
-                    maxValue={100}
-                    color="#3B82F6"
-                    label="Endurance"
-                    unit="score"
-                    size={100}
-                  />
-                  <CircularGauge
-                    value={paceGaugeValue}
-                    minValue={0}
-                    maxValue={8}
-                    color="#F97316"
-                    label=""
-                    unit=""
-                    size={100}
-                    showValue={false}
-                    customValue={
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <div className="text-[#F8FAFC] text-xs font-medium">Average Pace</div>
-                        <div className="text-[#F97316] text-2xl font-bold mt-1">{formatPace(data.pace)}</div>
-                        <div className="text-[#94A3B8] text-xs mt-0.5">min/km</div>
-                      </div>
-                    }
-                  />
-                  <CircularGauge
-                    value={85}
-                    minValue={0}
-                    maxValue={100}
-                    color="#8B5CF6"
-                    label="Recovery"
-                    unit="%"
-                    size={100}
-                  />
+            <div className="bg-[#1E293B] rounded-xl p-4">
+              <h3 className="text-[#F8FAFC] font-semibold mb-2">Max Lifts</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-[#94A3B8]">Bench Press</span>
+                  <span className="text-[#F8FAFC]">{data.bench_press}kg</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#94A3B8]">Squat</span>
+                  <span className="text-[#F8FAFC]">{data.squat}kg</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#94A3B8]">Deadlift</span>
+                  <span className="text-[#F8FAFC]">{data.deadlift}kg</span>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Heart Rate Monitor */}
+          <div className="bg-[#1E293B] rounded-xl p-4 mb-4">
+            <HeartRateAnimation 
+              currentRate={currentHeartRate}
+              maxRate={data.max_heart_rate}
+              restingRate={data.resting_heart_rate}
+            />
+          </div>
+
+          {/* Cardio Performance */}
+          <div className="bg-[#1E293B] rounded-xl p-4">
+            <CardioPerformanceTimeline />
+          </div>
         </div>
       </div>
 
       {/* Insights Section */}
       <div className="col-span-2">
-        <div className="sticky top-4 bg-[#334155] rounded-lg border-[#475569] overflow-auto max-h-[calc(100vh-2rem)] p-2">
+        <div className="sticky top-4 bg-[#334155] rounded-lg border-[#475569] overflow-auto max-h-[calc(100vh-2rem)] p-4">
           <WorkoutInsights patientId={patientId} className="h-full" />
         </div>
       </div>

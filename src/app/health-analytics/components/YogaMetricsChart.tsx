@@ -4,6 +4,8 @@ import { YogaData } from "@/lib/types/health";
 import CircularGauge from "./CircularGauge";
 import { YogaInsights } from './yoga/YogaInsights';
 import ReactECharts from "echarts-for-react";
+import YogaSunburstChart from './yoga/YogaSunburstChart';
+import YogaImpactCorrelationMatrix from './yoga/YogaImpactCorrelationMatrix';
 
 interface YogaMetricsChartProps {
   data: YogaData;
@@ -93,27 +95,27 @@ export default function YogaMetricsChart({ data, patientId }: YogaMetricsChartPr
   };
 
   return (
-    <div className="grid grid-cols-5 gap-8">
-      <div className="col-span-3 space-y-4">
-        <div className="w-full bg-[#334155] rounded-lg border-[#475569] p-4">
-          {/* Title */}
-          <div className="text-center mb-4">
-            <h2 className="text-2xl font-semibold text-[#F8FAFC]">Yoga Progress</h2>
-            <p className="text-sm text-[#94A3B8] mt-1">Track your flexibility, practice, and pose mastery</p>
-          </div>
-
-          {/* Main Content Stack */}
-          <div className="space-y-4">
-            {/* Flexibility Radar */}
+    <div className="space-y-8">
+      {/* Top section with 5-column grid */}
+      <div className="grid grid-cols-5 gap-8">
+        {/* Left side - Flexibility Matrix and Practice Stats */}
+        <div className="col-span-3">
+          <div className="bg-[#334155] rounded-lg border-[#475569] p-4 space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-semibold text-[#F8FAFC]">Yoga Progress</h2>
+              <p className="text-sm text-[#94A3B8] mt-1">Track your flexibility, practice, and pose mastery</p>
+            </div>
+            
+            {/* Flexibility Radar Chart */}
             <div className="bg-[#1E293B] rounded-lg p-4">
-            <ReactECharts 
-              option={flexibilityOption}
-              style={{ height: "280px" }}
-              theme="dark"
-            />
-          </div>
+              <ReactECharts 
+                option={flexibilityOption}
+                style={{ height: "280px" }}
+                theme="dark"
+              />
+            </div>
 
-            {/* Practice Stats */}
+            {/* Practice Stats and Pose Mastery */}
             <div className="bg-[#1E293B] rounded-lg p-4">
               <h3 className="text-[#F8FAFC] font-semibold mb-3">Practice Stats</h3>
               <div className="flex items-center justify-between space-x-3">
@@ -185,13 +187,19 @@ export default function YogaMetricsChart({ data, patientId }: YogaMetricsChartPr
             </div>
           </div>
         </div>
+
+        {/* Right side - Sunburst and Insights */}
+        <div className="col-span-2 space-y-4">
+          <YogaSunburstChart />
+          <div className="bg-[#334155] rounded-lg border-[#475569] p-4">
+            <YogaInsights patientId={patientId} />
+          </div>
+        </div>
       </div>
 
-      {/* Insights Section */}
-      <div className="col-span-2">
-        <div className="sticky top-4 bg-[#334155] rounded-lg border-[#475569] overflow-auto max-h-[calc(100vh-2rem)] p-2">
-          <YogaInsights patientId={patientId} className="h-full" />
-        </div>
+      {/* Bottom section - Full width Impact Correlation Matrix */}
+      <div className="w-full">
+        <YogaImpactCorrelationMatrix />
       </div>
     </div>
   );
