@@ -3,7 +3,6 @@
 import ReactECharts from "echarts-for-react";
 import { NutritionData, MacroNutrient, MedicationTracking } from "@/lib/types/health";
 import MedicationSection from "./medication/MedicationSection";
-import { NutritionInsights } from './nutrition/NutritionInsights';
 
 interface NutritionChartProps {
   data: NutritionData;
@@ -170,13 +169,6 @@ export default function NutritionChart({ data, medicationData, patientId }: Nutr
         </div>
 
         <MedicationSection data={medicationData} />
-      </div>
-
-      {/* Insights Section */}
-      <div className="col-span-2">
-        <div className="sticky top-4 bg-[#334155] rounded-lg border border-[#475569] overflow-auto max-h-[calc(100vh-2rem)] p-4 shadow-md">
-          <NutritionInsights patientId={patientId} className="h-full" />
-        </div>
       </div>
     </div>
   );

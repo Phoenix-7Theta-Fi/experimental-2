@@ -2,7 +2,6 @@
 
 import { YogaData } from "@/lib/types/health";
 import CircularGauge from "./CircularGauge";
-import { YogaInsights } from './yoga/YogaInsights';
 import ReactECharts from "echarts-for-react";
 import YogaSunburstChart from './yoga/YogaSunburstChart';
 import YogaImpactCorrelationMatrix from './yoga/YogaImpactCorrelationMatrix';
@@ -188,12 +187,9 @@ export default function YogaMetricsChart({ data, patientId }: YogaMetricsChartPr
           </div>
         </div>
 
-        {/* Right side - Sunburst and Insights */}
+        {/* Right side - Sunburst only */}
         <div className="col-span-2 space-y-4">
           <YogaSunburstChart />
-          <div className="bg-[#334155] rounded-lg border-[#475569] p-4">
-            <YogaInsights patientId={patientId} />
-          </div>
         </div>
       </div>
 

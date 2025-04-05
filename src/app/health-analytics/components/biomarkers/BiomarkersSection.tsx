@@ -5,7 +5,7 @@ import ReactECharts from 'echarts-for-react';
 import { BiomarkerData, BiomarkerCategory } from '@/lib/types/health';
 import { getLineChartOptions, getStackedBarOptions, generateCategorySummary, getStatusColor } from '@/lib/utils/chart-helpers';
 import { ArrowUpIcon, ArrowDownIcon, MinusIcon } from '@heroicons/react/24/solid';
-import { BiomarkerInsights } from './BiomarkerInsights';
+// import { BiomarkerInsights } from './BiomarkerInsights';
 
 interface BiomarkersSectionProps {
   data: BiomarkerData[];
@@ -143,104 +143,95 @@ const BiomarkersSection: React.FC<BiomarkersSectionProps> = ({ data, patientId }
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Main Charts Section */}
-        <div className="xl:col-span-3">
-          {!sortedData.length ? (
-            <NoDataMessage />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {summaries.map(summary => (
-                <div
-                  key={summary.category}
-                  className="bg-[#334155] rounded-lg shadow-lg shadow-black/20 border border-[#475569] overflow-hidden"
-                >
-                  {/* Card Header */}
-                  <div className="p-4 border-b border-[#475569]">
-                    <h4 className="text-lg font-semibold text-slate-100 capitalize">
-                      {summary.category}
-                    </h4>
+      {/* Main Charts Section */}
+      {!sortedData.length ? (
+        <NoDataMessage />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {summaries.map(summary => (
+            <div
+              key={summary.category}
+              className="bg-[#334155] rounded-lg shadow-lg shadow-black/20 border border-[#475569] overflow-hidden"
+            >
+              {/* Card Header */}
+              <div className="p-4 border-b border-[#475569]">
+                <h4 className="text-lg font-semibold text-slate-100 capitalize">
+                  {summary.category}
+                </h4>
+              </div>
+
+              {/* Charts Section */}
+              <div className="p-4 space-y-4">
+                {/* Metrics Summary */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  {summary.metrics.map(metric => (
+                    <button
+                      key={metric.name}
+                      onClick={() => handleMetricSelect(summary.category, metric.name)}
+                      className={`text-left transition-colors ${
+                        selectedMetric[summary.category] === metric.name
+                          ? 'bg-slate-600'
+                          : 'bg-slate-700/50'
+                      } p-3 rounded hover:bg-slate-600 relative overflow-hidden group`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-300 capitalize">{metric.name}</span>
+                        <span className="font-mono" style={{ color: getStatusColor(metric.value, metric.target.min, metric.target.max) }}>
+                          {metric.value} {metric.unit}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-400 mt-1">
+                        Target: {metric.target.min} - {metric.target.max} {metric.unit}
+                      </div>
+                      {/* Progress bar background */}
+                      <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-600/50" />
+                      {/* Progress bar fill */}
+                      <div 
+                        className="absolute bottom-0 left-0 h-1 bg-current transition-all"
+                        style={{
+                          width: `${Math.min(100, (metric.value / metric.target.max) * 100)}%`,
+                          color: getStatusColor(metric.value, metric.target.min, metric.target.max)
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Charts with loading states */}
+                <div className="relative">
+                  {isLoading && <LoadingSpinner />}
+                  {/* Trends Chart */}
+                  <div className="h-64">
+                    <ReactECharts 
+                      option={getLineChartOptions(
+                        sortedData,
+                        summary.category,
+                        selectedMetric[summary.category] || summary.metrics[0]?.name || '',
+                        true
+                      )}
+                      style={{ height: '100%' }}
+                      theme="dark"
+                    />
                   </div>
 
-                  {/* Charts Section */}
-                  <div className="p-4 space-y-4">
-                    {/* Metrics Summary */}
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      {summary.metrics.map(metric => (
-                        <button
-                          key={metric.name}
-                          onClick={() => handleMetricSelect(summary.category, metric.name)}
-                          className={`text-left transition-colors ${
-                            selectedMetric[summary.category] === metric.name
-                              ? 'bg-slate-600'
-                              : 'bg-slate-700/50'
-                          } p-3 rounded hover:bg-slate-600 relative overflow-hidden group`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <span className="text-slate-300 capitalize">{metric.name}</span>
-                            <span className="font-mono" style={{ color: getStatusColor(metric.value, metric.target.min, metric.target.max) }}>
-                              {metric.value} {metric.unit}
-                            </span>
-                          </div>
-                          <div className="text-xs text-slate-400 mt-1">
-                            Target: {metric.target.min} - {metric.target.max} {metric.unit}
-                          </div>
-                          {/* Progress bar background */}
-                          <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-600/50" />
-                          {/* Progress bar fill */}
-                          <div 
-                            className="absolute bottom-0 left-0 h-1 bg-current transition-all"
-                            style={{
-                              width: `${Math.min(100, (metric.value / metric.target.max) * 100)}%`,
-                              color: getStatusColor(metric.value, metric.target.min, metric.target.max)
-                            }}
-                          />
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Charts with loading states */}
-                    <div className="relative">
-                      {isLoading && <LoadingSpinner />}
-                      {/* Trends Chart */}
-                      <div className="h-64">
-                        <ReactECharts 
-                          option={getLineChartOptions(
-                            sortedData,
-                            summary.category,
-                            selectedMetric[summary.category] || summary.metrics[0]?.name || '',
-                            true
-                          )}
-                          style={{ height: '100%' }}
-                          theme="dark"
-                        />
-                      </div>
-
-                      {/* Stacked Bar Chart */}
-                      <div className="h-48">
-                        <ReactECharts
-                          option={getStackedBarOptions(
-                            sortedData,
-                            summary.category,
-                            summary.metrics.map(m => m.name)
-                          )}
-                          style={{ height: '100%' }}
-                          theme="dark"
-                        />
-                      </div>
-                    </div>
+                  {/* Stacked Bar Chart */}
+                  <div className="h-48">
+                    <ReactECharts
+                      option={getStackedBarOptions(
+                        sortedData,
+                        summary.category,
+                        summary.metrics.map(m => m.name)
+                      )}
+                      style={{ height: '100%' }}
+                      theme="dark"
+                    />
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
-          )}
+          ))}
         </div>
-
-        {/* Insights Section */}
-        <div className="xl:col-span-1">
-          <BiomarkerInsights patientId={patientId} />
-        </div>
-      </div>
+      )}
     </div>
   );
 };

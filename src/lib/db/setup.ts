@@ -337,7 +337,7 @@ export function setupTables(db: ReturnType<typeof sqlite>) {
     CREATE TABLE IF NOT EXISTS health_insights (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       patient_id INTEGER NOT NULL,
-      section TEXT CHECK(section IN ('biomarkers', 'workout', 'yoga', 'mental', 'diet_medication')) NOT NULL,
+      section TEXT CHECK(section IN ('biomarkers', 'mental', 'diet_medication')) NOT NULL,
       insight_data TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (patient_id) REFERENCES users(id)

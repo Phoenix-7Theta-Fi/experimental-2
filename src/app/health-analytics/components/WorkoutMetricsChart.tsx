@@ -192,13 +192,6 @@ export default function WorkoutMetricsChart({ data, patientId }: WorkoutMetricsC
           </div>
         </div>
       </div>
-
-      {/* Insights Section */}
-      <div className="col-span-2">
-        <div className="sticky top-4 bg-[#334155] rounded-lg border-[#475569] overflow-auto max-h-[calc(100vh-2rem)] p-4">
-          <WorkoutInsights patientId={patientId} className="h-full" />
-        </div>
-      </div>
     </div>
   );
 }
