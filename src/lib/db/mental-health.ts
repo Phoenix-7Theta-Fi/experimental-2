@@ -13,8 +13,8 @@ export const getUserMoodJourney = (userId: number, limit: number = 30): MoodEntr
   const db = getDB();
   const entries = db.prepare(`
     SELECT date, mood, intensity, trigger, note
-    FROM mood_entries 
-    WHERE user_id = ? 
+    FROM mood_entries
+    WHERE user_id = ?
     ORDER BY date DESC
     LIMIT ?
   `).all(userId, limit) as MoodEntry[];
@@ -48,16 +48,16 @@ export const recordMoodEntry = (
 export const getUserMentalHealthData = (userId: number) => {
   const db = getDB();
   const data = db.prepare(`
-    SELECT * FROM mental_health 
-    WHERE user_id = ? 
-    ORDER BY date DESC 
+    SELECT * FROM mental_health
+    WHERE user_id = ?
+    ORDER BY date DESC
     LIMIT 1
   `).get(userId) as any;
 
   if (!data) return null;
 
-  // Get the recent mood journey
-  const moodJourney = getUserMoodJourney(userId, 7); // Last 7 days by default
+  // Get the full month of mood journey data
+  const moodJourney = getUserMoodJourney(userId, 31); // Full month of data
 
   return {
     id: data.id,
@@ -92,7 +92,7 @@ export const getUserMentalHealthData = (userId: number) => {
 
 export const seedMentalHealthData = (specificUsers?: number[]) => {
   const db = getDB();
-  const users = specificUsers 
+  const users = specificUsers
     ? specificUsers.map(id => ({ id }))
     : (db.prepare("SELECT id FROM users WHERE role = 'patient'").all() as { id: number }[]);
   const today = new Date().toISOString().split('T')[0];
@@ -127,12 +127,12 @@ export const seedMentalHealthData = (specificUsers?: number[]) => {
         65 + Math.floor(Math.random() * 35)    // wellbeing_score
       );
 
-      // Add mood entries for the last 7 days
-      for (let i = 0; i < 7; i++) {
+      // Add mood entries for the full month (31 days)
+      for (let i = 0; i < 31; i++) {
         const date = new Date();
         date.setDate(date.getDate() - i);
         const dateStr = date.toISOString().split('T')[0];
-        
+
         recordMoodEntry(user.id, {
           date: dateStr,
           mood: moodCategories[Math.floor(Math.random() * moodCategories.length)],

@@ -7,6 +7,7 @@ import HeartRateAnimation from "./HeartRateAnimation";
 import CircularGauge from "./CircularGauge";
 import { WorkoutInsights } from './workout/WorkoutInsights';
 import CardioPerformanceTimeline from './workout/CardioPerformanceTimeline';
+import WorkoutMetricsAreaChart from './workout/WorkoutMetricsAreaChart';
 
 interface WorkoutMetricsChartProps {
   data: WorkoutData;
@@ -20,7 +21,7 @@ type MetricUnits = {
 export default function WorkoutMetricsChart({ data, patientId }: WorkoutMetricsChartProps) {
   // Calculate current heart rate (simulated as midway between resting and max)
   const currentHeartRate = Math.round(
-    data.resting_heart_rate + 
+    data.resting_heart_rate +
     (data.max_heart_rate - data.resting_heart_rate) * 0.7
   );
 
@@ -173,9 +174,12 @@ export default function WorkoutMetricsChart({ data, patientId }: WorkoutMetricsC
             </div>
           </div>
 
+          {/* Workout Metrics Area Chart */}
+          <WorkoutMetricsAreaChart />
+
           {/* Heart Rate Monitor */}
           <div className="bg-[#1E293B] rounded-xl p-4 mb-4">
-            <HeartRateAnimation 
+            <HeartRateAnimation
               currentRate={currentHeartRate}
               maxRate={data.max_heart_rate}
               restingRate={data.resting_heart_rate}

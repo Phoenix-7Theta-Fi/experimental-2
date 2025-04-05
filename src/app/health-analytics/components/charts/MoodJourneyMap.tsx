@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import type { MoodEntry } from '@/lib/types/health';
+import { startOfMonth, endOfMonth, eachDayOfInterval, format } from 'date-fns';
 
 // Keep the original mock data as fallback
 const MOCK_MOOD_JOURNEY: MoodEntry[] = [
@@ -105,36 +106,129 @@ interface MoodJourneyMapProps {
   className?: string;
 }
 
-// Extended mock data for testing
-const EXTENDED_MOCK_DATA: MoodEntry[] = [
-  ...MOCK_MOOD_JOURNEY,
-  { date: '2024-01-06', mood: 'neutral', intensity: 5, note: 'Quiet day' },
-  { date: '2024-01-07', mood: 'sad', intensity: 2, trigger: 'Bad news' },
-  { date: '2024-01-08', mood: 'calm', intensity: 6 },
-];
+// Extended mock data for testing - generate a full month of data
+const EXTENDED_MOCK_DATA: MoodEntry[] = (() => {
+  // Start with our existing data
+  const baseData = [
+    ...MOCK_MOOD_JOURNEY,
+    { date: '2024-01-06', mood: 'neutral', intensity: 5, note: 'Quiet day' },
+    { date: '2024-01-07', mood: 'sad', intensity: 2, trigger: 'Bad news' },
+    { date: '2024-01-08', mood: 'calm', intensity: 6 },
+  ];
+
+  // Create a map of existing dates for quick lookup
+  const existingDates = new Map(baseData.map(entry => [entry.date, entry]));
+
+  // Generate entries for the entire month
+  const currentDate = new Date('2024-01-01'); // Use January 2024 for mock data
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  // Create the full month dataset
+  const fullMonthData: MoodEntry[] = [];
+
+  // All possible moods for random generation
+  const allMoods: MoodEntry['mood'][] = ['happy', 'excited', 'calm', 'neutral', 'sad', 'anxious', 'stressed'];
+
+  daysInMonth.forEach(day => {
+    const dateStr = format(day, 'yyyy-MM-dd');
+
+    // If we already have data for this date, use it
+    if (existingDates.has(dateStr)) {
+      fullMonthData.push(existingDates.get(dateStr)!);
+    } else {
+      // Otherwise generate random data
+      fullMonthData.push({
+        date: dateStr,
+        mood: allMoods[Math.floor(Math.random() * allMoods.length)],
+        intensity: Math.floor(Math.random() * 10) + 1,
+        // Add trigger and note randomly
+        ...(Math.random() > 0.7 ? { trigger: 'Random event' } : {}),
+        ...(Math.random() > 0.8 ? { note: 'Auto-generated entry' } : {})
+      });
+    }
+  });
+
+  return fullMonthData;
+})();
 
 
-export default function MoodJourneyMap({ 
+export default function MoodJourneyMap({
   data = EXTENDED_MOCK_DATA, // Use mock data as fallback
-  className = '' 
+  className = ''
 }: MoodJourneyMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  
-  // Add this to determine if we're using mock data
+
+  // Determine if we're using mock data or real data
   const isUsingMockData = !data || data === EXTENDED_MOCK_DATA;
+
+  // If we have real data but it's not a full month, we'll fill in the gaps
+  const [processedData, setProcessedData] = useState<MoodEntry[]>([]);
+
+  // Process the data to ensure we have entries for the full month
+  useEffect(() => {
+    if (!data || data.length === 0) {
+      setProcessedData(EXTENDED_MOCK_DATA);
+      return;
+    }
+
+    // If we have real data, process it to ensure we have a full month
+    // First, sort the data by date
+    const sortedRealData = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Find the month boundaries from the data
+    const firstDate = new Date(sortedRealData[0].date);
+    const lastDate = new Date(sortedRealData[sortedRealData.length - 1].date);
+
+    // If the data spans less than 25 days, use the current month
+    const useCurrentMonth = (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24) < 25;
+
+    // Determine the month to display
+    const displayMonth = useCurrentMonth ? new Date() : firstDate;
+    const monthStart = startOfMonth(displayMonth);
+    const monthEnd = endOfMonth(displayMonth);
+    const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+    // Create a map of existing dates for quick lookup
+    const existingDates = new Map(sortedRealData.map(entry => [entry.date, entry]));
+
+    // Create the full month dataset
+    const fullMonthData: MoodEntry[] = [];
+    const allMoods: MoodEntry['mood'][] = ['happy', 'excited', 'calm', 'neutral', 'sad', 'anxious', 'stressed'];
+
+    daysInMonth.forEach(day => {
+      const dateStr = format(day, 'yyyy-MM-dd');
+
+      // If we have data for this date, use it
+      if (existingDates.has(dateStr)) {
+        fullMonthData.push(existingDates.get(dateStr)!);
+      } else if (day <= new Date()) {
+        // For past dates with no data, generate placeholder data
+        // Only generate data for dates up to today
+        fullMonthData.push({
+          date: dateStr,
+          mood: 'neutral',  // Use neutral as default for missing days
+          intensity: 5,     // Use middle intensity for missing days
+        });
+      }
+    });
+
+    setProcessedData(fullMonthData);
+  }, [data]);
 
   const PADDING = { top: 20, right: 20, bottom: 40, left: 50 };
   const CHART_HEIGHT = 200; // Adjusted height
   const Y_AXIS_WIDTH = PADDING.left;
   const X_AXIS_HEIGHT = PADDING.bottom;
 
-  // Sort data by date, ensure data is always an array
+  // Use the processed data that ensures we have entries for the full month
   const sortedData = React.useMemo(() =>
-    [...(data || [])].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
-    [data]
+    [...processedData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+    [processedData]
   );
 
   useEffect(() => {
@@ -174,19 +268,37 @@ export default function MoodJourneyMap({
   }, [PADDING.left, PADDING.right]); // Rerun if padding changes
 
   // --- Scales ---
-  const dates = sortedData.map(d => new Date(d.date).getTime()).filter(t => !isNaN(t)); // Filter out invalid dates
-  const minDate = dates.length > 0 ? Math.min(...dates) : Date.now();
-  const maxDate = dates.length > 0 ? Math.max(...dates) : Date.now();
-  // Handle case with single data point or same dates
-  const dateRange = (maxDate > minDate) ? (maxDate - minDate) : 1;
+  // Get the first day of the month and last day of the month from the data
+  const firstEntry = sortedData[0];
+  const lastEntry = sortedData[sortedData.length - 1];
 
+  // Use the first and last entry dates to determine month boundaries
+  const firstDate = firstEntry ? new Date(firstEntry.date) : new Date();
+  const monthStart = startOfMonth(firstDate);
+  const monthEnd = endOfMonth(firstDate);
+
+  // Calculate the total number of days in the month
+  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const totalDays = daysInMonth.length;
+
+  // Create a map of dates to their day of month for quick lookup
+  const dateMap = new Map(daysInMonth.map((date, index) => [
+    format(date, 'yyyy-MM-dd'),
+    { index, dayOfMonth: date.getDate() }
+  ]));
+
+  // Scale function that positions points based on day of month
   const xScale = (date: number): number => {
-     if (isNaN(date)) return NaN; // Handle invalid date input
-     if (sortedData.length === 1) return dimensions.width / 2; // Center single point
-     if (dateRange === 1) return dimensions.width / 2; // Also center if min/max are same
-     // Clamp date to the calculated range before scaling
-     const clampedDate = Math.max(minDate, Math.min(maxDate, date));
-     return ((clampedDate - minDate) / dateRange) * dimensions.width;
+    if (isNaN(date)) return NaN; // Handle invalid date input
+
+    const dateObj = new Date(date);
+    const dateStr = format(dateObj, 'yyyy-MM-dd');
+    const dayInfo = dateMap.get(dateStr);
+
+    if (!dayInfo) return NaN; // Date not in our month
+
+    // Position based on day index in month (evenly distributed)
+    return (dayInfo.index / (totalDays - 1)) * dimensions.width;
   };
 
   const yScale = (intensity: number): number => {
@@ -210,11 +322,14 @@ export default function MoodJourneyMap({
     const svgRect = svgRef.current.getBoundingClientRect();
     const svgX = event.clientX - svgRect.left - PADDING.left;
 
+    // Find the closest day based on mouse position
     let closestIndex = -1;
     let minDistance = Infinity;
 
+    // Loop through all days in the month to find the closest one
     for (let i = 0; i < sortedData.length; i++) {
-        const pointX = xScale(new Date(sortedData[i].date).getTime());
+        const entry = sortedData[i];
+        const pointX = xScale(new Date(entry.date).getTime());
         if (isNaN(pointX)) continue;
 
         const distance = Math.abs(svgX - pointX);
@@ -224,8 +339,10 @@ export default function MoodJourneyMap({
         }
     }
 
-    const avgDist = sortedData.length > 1 ? dimensions.width / (sortedData.length - 1) : dimensions.width;
-    const threshold = isFinite(avgDist) && avgDist > 0 ? Math.max(10, avgDist / 2) : 20;
+    // Calculate the average distance between points for threshold
+    // Since we're showing all days of the month, this is more predictable
+    const dayWidth = dimensions.width / (totalDays - 1);
+    const threshold = Math.max(10, dayWidth / 2);
 
     if (closestIndex !== -1 && minDistance <= threshold) {
        setHoveredIndex(closestIndex);
@@ -368,12 +485,17 @@ export default function MoodJourneyMap({
               />
             )}
 
-            {/* X-Axis Labels (Day Numbers) */}
-            {sortedData.map((entry, index) => {
-              const showLabel = sortedData.length <= 31 || index % Math.ceil(sortedData.length / 15) === 0;
+            {/* X-Axis Labels (Day Numbers) - Show all days of month */}
+            {daysInMonth.map((day, index) => {
+              // For months with many days, we might want to show only every other day or every third day
+              // For now, let's show all days but we can adjust this if it gets too crowded
+              const showLabel = totalDays <= 31 || index % Math.max(1, Math.floor(totalDays / 15)) === 0;
+
               if (!showLabel) return null;
 
-              const x = xScale(new Date(entry.date).getTime());
+              const dateStr = format(day, 'yyyy-MM-dd');
+              const x = xScale(day.getTime());
+
               if (isNaN(x)) return null;
 
               return (
@@ -386,7 +508,7 @@ export default function MoodJourneyMap({
                   fontSize="11"
                   fill="#94A3B8"
                 >
-                  {getDayOfMonth(entry.date)}
+                  {day.getDate()}
                 </text>
               );
             })}
