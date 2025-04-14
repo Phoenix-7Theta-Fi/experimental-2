@@ -47,7 +47,7 @@ const AdherenceCalendar: React.FC<AdherenceCalendarProps> = ({ adherenceData }) 
       <div
         key={day.toString()}
         className={`
-          h-16 p-2 rounded-lg
+          h-10 p-1 rounded
           ${getAdherenceColor(adherenceRate)}
           ${isToday ? 'ring-2 ring-blue-500' : ''}
           transition-all duration-200 hover:scale-105
@@ -55,10 +55,10 @@ const AdherenceCalendar: React.FC<AdherenceCalendarProps> = ({ adherenceData }) 
           cursor-pointer
         `}
       >
-        <span className="text-sm font-medium">
+        <span className="text-xs font-medium">
           {format(day, 'd')}
         </span>
-        <span className="text-xs font-bold">
+        <span className="text-2xs font-bold">
           {adherenceRate}%
         </span>
       </div>
@@ -67,35 +67,35 @@ const AdherenceCalendar: React.FC<AdherenceCalendarProps> = ({ adherenceData }) 
 
   const renderLegendItem = (color: string, textColor: string, label: string) => (
     <div className="flex items-center">
-      <div className={`w-4 h-4 rounded-lg ${color} ${textColor}`} />
-      <span className="text-sm text-slate-300 ml-2">{label}</span>
+      <div className={`w-3 h-3 rounded ${color} ${textColor}`} />
+      <span className="text-2xs text-slate-300 ml-1">{label}</span>
     </div>
   );
 
   return (
-    <div className="bg-slate-800 rounded-lg p-6 shadow-lg">
-      <h3 className="text-xl font-bold text-slate-100 mb-6 text-center">
+    <div className="space-y-2">
+      <h3 className="text-base font-semibold text-slate-100 text-center">
         Medication Adherence - {format(currentDate, 'MMMM yyyy')}
       </h3>
 
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-1">
         {weekDays.map((day) => (
-          <div key={day} className="text-center text-sm font-medium text-slate-400 mb-2">
+          <div key={day} className="text-center text-xs font-medium text-slate-400">
             {day}
           </div>
         ))}
 
         {Array.from({ length: monthStart.getDay() }).map((_, index) => (
-          <div key={`empty-${index}`} className="h-16" />
+          <div key={`empty-${index}`} className="h-10" />
         ))}
 
         {days.map((day) => renderCalendarDay(day))}
       </div>
 
-      <div className="mt-6 flex items-center justify-center space-x-6">
-        {renderLegendItem('bg-emerald-500/20', 'text-emerald-500', 'High (≥80%)')}
-        {renderLegendItem('bg-amber-500/20', 'text-amber-500', 'Medium (≥50%)')}
-        {renderLegendItem('bg-red-500/20', 'text-red-500', 'Low (<50%)')}
+      <div className="flex items-center justify-center space-x-3 text-xs pt-1">
+        {renderLegendItem('bg-emerald-500/10', 'text-emerald-400', 'High (≥80%)')}
+        {renderLegendItem('bg-amber-500/10', 'text-amber-400', 'Medium (≥50%)')}
+        {renderLegendItem('bg-red-500/10', 'text-red-400', 'Low (<50%)')}
       </div>
     </div>
   );

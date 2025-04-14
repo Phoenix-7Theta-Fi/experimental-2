@@ -2,9 +2,6 @@
 
 import { MentalHealthData } from "@/lib/types/health";
 import SleepQualitySunburst from "./charts/SleepQualitySunburst";
-import MeditationInsightsChart from "./charts/MeditationInsightsChart";
-import MoodStressTimeline from "./charts/MoodStressTimeline";
-import WellbeingMetrics from "./charts/WellbeingMetrics";
 import MoodJourneyMap from './charts/MoodJourneyMap';
 import MeditationTimeline from "./charts/MeditationTimeline";
 
@@ -16,9 +13,9 @@ interface MentalHealthChartProps {
 export default function MentalHealthChart({ data, patientId }: MentalHealthChartProps) {
   return (
     <div className="flex flex-col gap-8">
-      {/* Mood Journey Map - Now using real data from mental health data */}
+      {/* Mood Journey Map */}
       <div className="w-full bg-[#1E293B] rounded-lg border border-[#475569] p-4">
-        <MoodJourneyMap data={data.mood.journey} />
+        <MoodJourneyMap data={data.moodJourney} />
       </div>
 
       {/* Container for all charts */}
@@ -34,23 +31,6 @@ export default function MentalHealthChart({ data, patientId }: MentalHealthChart
 
         <div className="bg-[#1E293B] rounded-lg p-4">
           <MeditationTimeline />
-        </div>
-
-        <div className="bg-[#1E293B] rounded-lg p-4">
-          {data?.meditation && <MeditationInsightsChart meditation={data.meditation} />}
-        </div>
-
-        <div className="bg-[#1E293B] rounded-lg p-4">
-          {data?.mood && data?.wellbeing && <MoodStressTimeline mood={data.mood} wellbeing={data.wellbeing} />}
-        </div>
-
-        <div className="bg-[#1E293B] rounded-lg p-4">
-          {data?.wellbeing && data?.meditation && <WellbeingMetrics
-            overallScore={data.wellbeing.overallScore}
-            recoveryScore={data.wellbeing.recoveryScore}
-            stressLevel={data.wellbeing.stressLevel}
-            meditationProgress={data.meditation.progress}
-          />}
         </div>
       </div>
     </div>

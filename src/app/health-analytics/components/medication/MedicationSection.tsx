@@ -10,14 +10,14 @@ interface MedicationSectionProps {
 
 export default function MedicationSection({ data }: MedicationSectionProps) {
   return (
-    <section>
-      <h2 className="text-xl font-bold text-slate-100 mb-4">Medication Tracking</h2>
+    <section className="space-y-3">
+      <h2 className="text-lg font-bold text-slate-100">Medication Tracking</h2>
 
-      <div className="space-y-6">
-        <div className="w-full bg-[#334155] rounded-lg border border-[#475569] p-4 shadow-md">
+      <div className="space-y-3">
+        <div className="bg-slate-800/40 backdrop-blur-sm rounded-md p-3">
           <MedicationCorrelationChart />
         </div>
-        <div className="w-full bg-[#334155] rounded-lg border border-[#475569] p-4 shadow-md">
+        <div className="bg-slate-800/40 backdrop-blur-sm rounded-md p-3">
           <AdherenceCalendar adherenceData={data.adherence} />
         </div>
       </div>

@@ -22,18 +22,14 @@ export const getUserWorkoutData = (userId: number) => {
     deadlift: data.deadlift,
     muscle_balance: data.muscle_balance,
     vo2_max: data.vo2_max,
-    resting_heart_rate: data.resting_heart_rate,
-    max_heart_rate: data.max_heart_rate,
     endurance: data.endurance,
     pace: data.pace
   } as WorkoutData;
 };
 
-export const seedWorkouts = (specificUsers?: number[]) => {
+export const seedWorkouts = () => {
   const db = getDB();
-  const users = specificUsers 
-    ? specificUsers.map(id => ({ id }))
-    : (db.prepare("SELECT id FROM users WHERE role = 'patient'").all() as { id: number }[]);
+  const users = db.prepare('SELECT id FROM users').all();
   const today = new Date().toISOString().split('T')[0];
 
   users.forEach(user => {
@@ -42,9 +38,8 @@ export const seedWorkouts = (specificUsers?: number[]) => {
       db.prepare(`
         INSERT INTO workouts (
           user_id, date, power_index, bench_press, squat, deadlift,
-          muscle_balance, vo2_max, resting_heart_rate, max_heart_rate,
-          endurance, pace
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          muscle_balance, vo2_max, endurance, pace
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         user.id, today,
         75 + Math.floor(Math.random() * 25),   // power_index
@@ -53,13 +48,9 @@ export const seedWorkouts = (specificUsers?: number[]) => {
         120 + Math.floor(Math.random() * 80),  // deadlift (kg)
         70 + Math.floor(Math.random() * 30),   // muscle_balance
         35 + Math.floor(Math.random() * 15),   // vo2_max (ml/kg/min)
-        60 + Math.floor(Math.random() * 20),   // resting_heart_rate (bpm)
-        150 + Math.floor(Math.random() * 30),  // max_heart_rate (bpm)
-        65 + Math.floor(Math.random() * 35),   // endurance
+        85 + Math.floor(Math.random() * 15),   // endurance
         5 + Math.random() * 3                  // pace (min/km)
       );
     }
   });
-
-  console.log('Workout data seeded successfully');
 };

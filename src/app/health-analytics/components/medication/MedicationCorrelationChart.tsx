@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   ComposedChart,
   Bar,
@@ -11,37 +11,34 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { format } from 'date-fns';
+import { useMedicationImpact } from './hooks/useMedicationImpact';
 
-// Generate mock data for the entire month
-const generateMonthlyData = () => {
-  const currentDate = new Date();
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-  return daysInMonth.map(date => ({
-    date: format(date, 'yyyy-MM-dd'),
+// Mock data for fallback when API fails
+const MOCK_DATA = Array.from({ length: 30 }, (_, i) => {
+  const date = new Date();
+  date.setDate(date.getDate() - (29 - i));
+  
+  return {
+    date: date.toISOString(),
     medications: {
-      'Ashwagandha': Math.random() > 0.1 ? 500 : 0, // 90% adherence
-      'Triphala': Math.random() > 0.15 ? 1000 : 0, // 85% adherence
-      'Brahmi': Math.random() > 0.2 ? 350 : 0, // 80% adherence
-      'Metformin': Math.random() > 0.05 ? 850 : 0, // 95% adherence
-      'Lisinopril': Math.random() > 0.1 ? 10 : 0, // 90% adherence
-      'Vitamin D3': Math.random() > 0.2 ? 2000 : 0, // 80% adherence
-      'Omega-3': Math.random() > 0.15 ? 1000 : 0, // 85% adherence
-      'Magnesium': Math.random() > 0.25 ? 400 : 0, // 75% adherence
+      'Ashwagandha': Math.floor(Math.random() * 300 + 200), // 200-500mg
+      'Triphala': Math.floor(Math.random() * 400 + 300), // 300-700mg
+      'Brahmi': Math.floor(Math.random() * 200 + 150), // 150-350mg
+      'Metformin': Math.floor(Math.random() * 500 + 500), // 500-1000mg
+      'Lisinopril': Math.floor(Math.random() * 10 + 5), // 5-15mg
+      'Vitamin D3': Math.floor(Math.random() * 2000 + 1000), // 1000-3000IU
+      'Omega-3': Math.floor(Math.random() * 1000 + 500), // 500-1500mg
+      'Magnesium': Math.floor(Math.random() * 200 + 100), // 100-300mg
     },
     metrics: {
-      sleepScore: 60 + Math.random() * 40,
-      mentalScore: 65 + Math.random() * 35,
-      workoutScore: 55 + Math.random() * 45,
-      recoveryScore: 70 + Math.random() * 30,
-    },
-  }));
-};
-
-const monthlyData = generateMonthlyData();
+      sleepScore: Math.floor(Math.random() * 30 + 70), // 70-100
+      mentalScore: Math.floor(Math.random() * 25 + 75), // 75-100
+      workoutScore: Math.floor(Math.random() * 35 + 65), // 65-100
+      recoveryScore: Math.floor(Math.random() * 40 + 60), // 60-100
+    }
+  };
+});
 
 // Color palette for medications by category
 const MEDICATION_COLORS = {
@@ -74,14 +71,49 @@ const METRIC_LABELS = {
 
 export default function MedicationCorrelationChart() {
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+  const { data: apiData, isLoading, error } = useMedicationImpact();
+  
+  // Use API data if available, otherwise fallback to mock data
+  const data = useMemo(() => {
+    if (!error && apiData && apiData.length > 0) {
+      return apiData;
+    }
+    return MOCK_DATA;
+  }, [apiData, error]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-[500px] flex items-center justify-center bg-slate-800/40 rounded-lg">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          <p className="text-slate-400">Loading medication impact data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="w-full h-[500px] flex items-center justify-center bg-slate-800/40 rounded-lg">
+        <p className="text-slate-400">No medication impact data available</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full">
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-100">
-            Monthly Medication Impact Analysis
-          </h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-slate-100">
+              Monthly Medication Impact Analysis
+            </h3>
+            {error && (
+              <span className="px-2 py-1 text-xs font-medium rounded bg-amber-900/50 text-amber-400 border border-amber-800">
+                Using Mock Data
+              </span>
+            )}
+          </div>
           <div className="text-sm text-slate-400">
             {format(new Date(), 'MMMM yyyy')}
           </div>
@@ -91,7 +123,7 @@ export default function MedicationCorrelationChart() {
           <div className="h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
-                data={monthlyData}
+                data={data}
                 margin={{ top: 20, right: 40, left: 20, bottom: 80 }}
                 onMouseMove={(e) => {
                   if (e.activeLabel) {
@@ -108,48 +140,42 @@ export default function MedicationCorrelationChart() {
                   tickFormatter={(value) => format(new Date(value), 'd')}
                   interval={2}
                 />
-                
                 <YAxis
                   yAxisId="medications"
+                  orientation="left"
                   stroke="#94A3B8"
                   tick={{ fill: '#94A3B8', fontSize: 12 }}
                   tickLine={{ stroke: '#475569' }}
                   label={{
-                    value: 'Medication Dosage (mg)',
+                    value: 'Dosage (mg)',
                     angle: -90,
                     position: 'insideLeft',
                     fill: '#94A3B8',
-                    fontSize: 12,
                   }}
                 />
-                
                 <YAxis
                   yAxisId="metrics"
                   orientation="right"
-                  domain={[0, 100]}
                   stroke="#94A3B8"
                   tick={{ fill: '#94A3B8', fontSize: 12 }}
                   tickLine={{ stroke: '#475569' }}
+                  domain={[0, 100]}
                   label={{
-                    value: 'Health Metrics Score',
+                    value: 'Score',
                     angle: 90,
                     position: 'insideRight',
                     fill: '#94A3B8',
-                    fontSize: 12,
                   }}
                 />
-
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#1E293B',
                     border: '1px solid #475569',
                     borderRadius: '8px',
                   }}
-                  labelStyle={{ color: '#F8FAFC' }}
+                  labelStyle={{ color: '#94A3B8' }}
                   itemStyle={{ color: '#E2E8F0' }}
-                  labelFormatter={(value) => format(new Date(value), 'MMM dd, yyyy')}
                 />
-
                 <Legend
                   verticalAlign="bottom"
                   height={72}

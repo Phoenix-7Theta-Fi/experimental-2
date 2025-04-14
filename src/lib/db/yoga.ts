@@ -23,24 +23,25 @@ export const getUserYogaData = (userId: number) => {
       balance: data.balance_score,
       overall: data.overall_flexibility,
     },
-    practice: {
-      weeklyCompletion: data.weekly_completion,
-      streak: data.streak,
-      duration: data.duration,
-    },
-    poses: {
-      beginner: { completed: data.beginner_completed, total: data.beginner_total },
-      intermediate: { completed: data.intermediate_completed, total: data.intermediate_total },
-      advanced: { completed: data.advanced_completed, total: data.advanced_total },
-    },
+    recovery_score: data.recovery_score
   } as YogaData;
 };
 
-export const seedYoga = (specificUsers?: number[]) => {
+export const getYogaMetricsForDateRange = (userId: number, startDate: string, endDate: string) => {
   const db = getDB();
-  const users = specificUsers 
-    ? specificUsers.map(id => ({ id }))
-    : (db.prepare("SELECT id FROM users WHERE role = 'patient'").all() as { id: number }[]);
+  return db.prepare(`
+    SELECT date, recovery_score
+    FROM yoga_metrics 
+    WHERE user_id = ? 
+      AND date >= ? 
+      AND date <= ?
+    ORDER BY date ASC
+  `).all(userId, startDate, endDate) as { date: string; recovery_score: number; }[];
+};
+
+export const seedYoga = () => {
+  const db = getDB();
+  const users = db.prepare('SELECT id FROM users').all();
   const today = new Date().toISOString().split('T')[0];
 
   users.forEach(user => {
@@ -48,12 +49,10 @@ export const seedYoga = (specificUsers?: number[]) => {
     if (!existingData) {
       db.prepare(`
         INSERT INTO yoga_metrics (
-          user_id, date, spine_flexibility, hip_flexibility, shoulder_flexibility,
-          balance_score, overall_flexibility, weekly_completion, streak,
-          duration, beginner_completed, beginner_total,
-          intermediate_completed, intermediate_total, advanced_completed,
-          advanced_total
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          user_id, date, spine_flexibility, hip_flexibility, 
+          shoulder_flexibility, balance_score, overall_flexibility,
+          recovery_score
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         user.id, today,
         65 + Math.floor(Math.random() * 25), // spine_flexibility
@@ -61,12 +60,7 @@ export const seedYoga = (specificUsers?: number[]) => {
         75 + Math.floor(Math.random() * 15), // shoulder_flexibility
         60 + Math.floor(Math.random() * 30), // balance_score
         70 + Math.floor(Math.random() * 20), // overall_flexibility
-        60 + Math.floor(Math.random() * 40), // weekly_completion
-        Math.floor(Math.random() * 14), // streak
-        30 + Math.floor(Math.random() * 30), // duration
-        8 + Math.floor(Math.random() * 4), 12, // beginner_completed, total
-        4 + Math.floor(Math.random() * 4), 8,  // intermediate_completed, total
-        Math.floor(Math.random() * 3), 5       // advanced_completed, total
+        65 + Math.floor(Math.random() * 35)  // recovery_score
       );
     }
   });

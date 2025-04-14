@@ -41,8 +41,6 @@ export interface WorkoutData {
   deadlift: number;
   muscle_balance: number;
   vo2_max: number;
-  resting_heart_rate: number;
-  max_heart_rate: number;
   endurance: number;
   pace: number;
 }
@@ -58,22 +56,14 @@ export interface YogaData {
     balance: number;
     overall: number;
   };
-  practice: {
-    weeklyCompletion: number;
-    streak: number;
-    duration: number;
-  };
-  poses: {
-    beginner: { completed: number; total: number };
-    intermediate: { completed: number; total: number };
-    advanced: { completed: number; total: number };
-  };
+  recovery_score: number;
 }
 
 export interface MentalHealthData {
   id: number;
   user_id: number;
   date: string;
+  moodJourney: MoodEntry[];
   meditation: {
     minutes: number;
     streak: number;
@@ -88,14 +78,7 @@ export interface MentalHealthData {
     rem: number;
     consistency: number;
   };
-  mood: {
-    category: string;
-    intensity: number;
-    journey: MoodEntry[];
-  };
   wellbeing: {
-    stressLevel: number;
-    recoveryScore: number;
     overallScore: number;
   };
 }
@@ -396,8 +379,21 @@ export const BIOMARKER_RANGES = {
 // Add this new interface for mood entries
 export interface MoodEntry {
   date: string;
-  mood: string;
+  mood: 'happy' | 'excited' | 'calm' | 'neutral' | 'sad' | 'anxious' | 'stressed';
   intensity: number;
   trigger?: string;
   note?: string;
+}
+
+export interface MedicationImpactMetrics {
+  sleepScore: number;
+  mentalScore: number;
+  workoutScore: number;
+  recoveryScore: number;
+}
+
+export interface MedicationCorrelationData {
+  date: string;
+  medicationAdherence: boolean;
+  metrics: MedicationImpactMetrics;
 }

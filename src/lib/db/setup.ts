@@ -120,8 +120,6 @@ export function setupTables(db: ReturnType<typeof sqlite>) {
       deadlift REAL NOT NULL,
       muscle_balance REAL NOT NULL,
       vo2_max REAL NOT NULL,
-      resting_heart_rate INTEGER NOT NULL,
-      max_heart_rate INTEGER NOT NULL,
       endurance REAL NOT NULL,
       pace REAL NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id)
@@ -138,15 +136,7 @@ export function setupTables(db: ReturnType<typeof sqlite>) {
       shoulder_flexibility REAL NOT NULL,
       balance_score REAL NOT NULL,
       overall_flexibility REAL NOT NULL,
-      weekly_completion REAL NOT NULL,
-      streak INTEGER NOT NULL,
-      duration INTEGER NOT NULL,
-      beginner_completed INTEGER NOT NULL,
-      beginner_total INTEGER NOT NULL,
-      intermediate_completed INTEGER NOT NULL,
-      intermediate_total INTEGER NOT NULL,
-      advanced_completed INTEGER NOT NULL,
-      advanced_total INTEGER NOT NULL,
+      recovery_score REAL NOT NULL DEFAULT 70,
       FOREIGN KEY (user_id) REFERENCES users(id)
     )
   `);
@@ -166,10 +156,6 @@ export function setupTables(db: ReturnType<typeof sqlite>) {
       light_sleep REAL NOT NULL,
       rem_sleep REAL NOT NULL,
       sleep_consistency REAL NOT NULL,
-      mood_category TEXT NOT NULL,
-      mood_intensity REAL NOT NULL,
-      stress_level REAL NOT NULL,
-      recovery_score REAL NOT NULL,
       wellbeing_score REAL NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id)
     )

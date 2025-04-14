@@ -54,15 +54,22 @@ export const getUserMentalHealthData = (userId: number) => {
     LIMIT 1
   `).get(userId) as any;
 
-  if (!data) return null;
+  // Get mood entries for the last 30 days
+  const moodEntries = db.prepare(`
+    SELECT date, mood, intensity, trigger, note
+    FROM mood_entries
+    WHERE user_id = ?
+    ORDER BY date DESC
+    LIMIT 30
+  `).all(userId) as MoodEntry[];
 
-  // Get the full month of mood journey data
-  const moodJourney = getUserMoodJourney(userId, 31); // Full month of data
+  if (!data) return null;
 
   return {
     id: data.id,
     user_id: data.user_id,
     date: data.date,
+    moodJourney: moodEntries,
     meditation: {
       minutes: data.meditation_minutes,
       streak: data.meditation_streak,
@@ -77,14 +84,7 @@ export const getUserMentalHealthData = (userId: number) => {
       rem: data.rem_sleep,
       consistency: data.sleep_consistency
     },
-    mood: {
-      category: data.mood_category,
-      intensity: data.mood_intensity,
-      journey: moodJourney  // Add this new field
-    },
     wellbeing: {
-      stressLevel: data.stress_level,
-      recoveryScore: data.recovery_score,
       overallScore: data.wellbeing_score
     }
   } as MentalHealthData;

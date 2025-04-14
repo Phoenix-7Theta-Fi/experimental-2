@@ -145,24 +145,24 @@ export default function NutritionChart({ data, medicationData, patientId }: Nutr
   };
 
   return (
-    <div className="grid grid-cols-5 gap-8">
-      <div className="col-span-3 space-y-6">
-        <div className="w-full bg-[#334155] rounded-lg border border-[#475569] p-4 shadow-md">
+    <div className="grid grid-cols-5 gap-4">
+      <div className="col-span-3 space-y-3">
+        {/* Nutrition Chart */}
+        <div className="bg-slate-800/40 backdrop-blur-sm rounded-md p-3">
           <ReactECharts
             option={option}
-            style={{ height: "450px" }}
+            style={{ height: "320px" }}
             className="w-full"
             theme="dark"
           />
-          <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+          <div className="mt-2 grid grid-cols-3 gap-2">
             {macroNutrients.map((nutrient) => (
               <div
                 key={nutrient.name}
-                className="p-3 rounded-lg shadow-sm"
-                style={{ backgroundColor: `${nutrient.color}20` }}
+                className="p-1.5 rounded bg-gradient-to-br from-slate-800/50 to-slate-700/30"
               >
-                <h3 className="font-semibold text-[#F8FAFC]">{nutrient.name}</h3>
-                <p className="text-xl font-bold text-[#F8FAFC]">{nutrient.value}%</p>
+                <h3 className="text-sm font-medium text-slate-300">{nutrient.name}</h3>
+                <p className="text-base font-semibold" style={{ color: nutrient.color }}>{nutrient.value}%</p>
               </div>
             ))}
           </div>

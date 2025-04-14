@@ -234,3 +234,112 @@ export const seedMedicationData = (specificUsers?: number[]) => {
 
   console.log('Medication data and adherence records seeded successfully');
 };
+
+export const getMedicationAdherenceForPeriod = (
+  userId: number,
+  startDate: string,
+  endDate: string
+) => {
+  const db = getDB();
+  return db.prepare(`
+    SELECT 
+      m.id as medication_id,
+      m.name,
+      m.type,
+      ma.date,
+      ma.taken
+    FROM medications m
+    JOIN medication_catalog mc ON m.catalog_id = mc.id
+    LEFT JOIN medication_adherence ma 
+      ON m.id = ma.medication_id 
+      AND ma.date BETWEEN ? AND ?
+    WHERE m.user_id = ?
+    ORDER BY ma.date ASC
+  `).all(startDate, endDate, userId) as {
+    medication_id: number;
+    name: string;
+    type: 'ayurvedic' | 'modern' | 'supplement';
+    date: string;
+    taken: number;
+  }[];
+};
+
+export const getMedicationImpactData = (
+  userId: number,
+  medicationId: number,
+  startDate: string,
+  endDate: string
+) => {
+  const db = getDB();
+  return db.prepare(`
+    WITH daily_metrics AS (
+      SELECT 
+        ma.date,
+        ma.taken,
+        mh.sleep_quality as sleep_score,
+        mh.wellbeing_score as mental_score,
+        w.power_index as workout_score,
+        y.recovery_score
+      FROM medication_adherence ma
+      LEFT JOIN mental_health mh 
+        ON ma.user_id = mh.user_id 
+        AND ma.date = mh.date
+      LEFT JOIN workouts w 
+        ON ma.user_id = w.user_id 
+        AND ma.date = w.date
+      LEFT JOIN yoga_metrics y 
+        ON ma.user_id = y.user_id 
+        AND ma.date = y.date
+      WHERE ma.user_id = ?
+        AND ma.medication_id = ?
+        AND ma.date BETWEEN ? AND ?
+    )
+    SELECT 
+      date,
+      taken,
+      COALESCE(sleep_score, 0) as sleep_score,
+      COALESCE(mental_score, 0) as mental_score,
+      COALESCE(workout_score, 0) as workout_score,
+      COALESCE(recovery_score, 0) as recovery_score
+    FROM daily_metrics
+    ORDER BY date ASC
+  `).all(userId, medicationId, startDate, endDate) as {
+    date: string;
+    taken: number;
+    sleep_score: number;
+    mental_score: number;
+    workout_score: number;
+    recovery_score: number;
+  }[];
+};
+
+// Helper function to calculate impact scores
+export const calculateMedicationEffectiveness = (
+  userId: number,
+  medicationId: number,
+  days: number = 30
+) => {
+  const endDate = new Date().toISOString().split('T')[0];
+  const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split('T')[0];
+
+  const impactData = getMedicationImpactData(userId, medicationId, startDate, endDate);
+  
+  // Calculate average scores when medication was taken vs not taken
+  const takenDays = impactData.filter(d => d.taken);
+  const missedDays = impactData.filter(d => !d.taken);
+
+  const calculateAverages = (days: typeof impactData) => ({
+    sleepScore: days.reduce((sum, d) => sum + d.sleep_score, 0) / days.length || 0,
+    mentalScore: days.reduce((sum, d) => sum + d.mental_score, 0) / days.length || 0,
+    workoutScore: days.reduce((sum, d) => sum + d.workout_score, 0) / days.length || 0,
+    recoveryScore: days.reduce((sum, d) => sum + d.recovery_score, 0) / days.length || 0
+  });
+
+  return {
+    withMedication: calculateAverages(takenDays),
+    withoutMedication: calculateAverages(missedDays),
+    adherenceRate: (takenDays.length / impactData.length) * 100
+  };
+};
